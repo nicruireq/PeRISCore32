@@ -6,6 +6,8 @@ package cpu_types is
 
     constant byte_msb : integer := 7;
     constant halfword_msb : integer := 15;
+    constant shift_amount_bits : integer := 5;
+    constant alu_control_width : integer := 5;
 
     subtype alu_opcode is std_logic_vector(4 downto 0);
     constant alu_add : alu_opcode := "00000";

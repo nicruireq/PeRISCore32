@@ -10,7 +10,7 @@ entity alu is
     port (
         operand_A : in std_logic_vector(data_width-1 downto 0);
         operand_B : in std_logic_vector(data_width-1 downto 0);
-        control : in std_logic_vector(5 downto 0);
+        control : in std_logic_vector(alu_control_width-1 downto 0);
         computation_out : out std_logic_vector(data_width-1 downto 0);
         zero_flag : out std_logic;
         overflow_flag : out std_logic
@@ -26,7 +26,7 @@ begin
     temp_A <= operand_A(data_width-1) & operand_A;
     temp_B <= operand_B(data_width-1) & operand_B;
 
-    computations : process( operand_A, operand_B, control )
+    computations : process( operand_A, operand_B, control, temp_A, temp_B )
     begin
         case( control ) is
         
@@ -65,8 +65,8 @@ begin
             when alu_and =>
                 intermediate_out(data_width-1 downto 0) <= operand_A and operand_B;
             when alu_lui =>
-                intermediate_out(data_width-1 downto data_width/2) <= operand_B;
-                intermediate_out(data_width/2-1 downto 0) <= (others <= '0');
+                intermediate_out(data_width-1 downto data_width/2) <= operand_B(halfword_msb downto 0);
+                intermediate_out(halfword_msb downto 0) <= (others => '0');
             when alu_nor =>
                 intermediate_out(data_width-1 downto 0) <= operand_A nor operand_B;
             when alu_or =>
@@ -76,23 +76,25 @@ begin
             when alu_sll =>
                 -- shift left logical
                 -- Here operand_B is rt and operand_A is shift amount or rs
-                intermediate_out(data_width-1 downto 0) <= operand_B sll operand_A;
+                intermediate_out(data_width-1 downto 0) <= std_logic_vector(unsigned(operand_B) sll to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0))));
             when alu_slr =>
                 -- shift right logical
                 -- Here operand_B is rt and operand_A is shift amount or rs
-                intermediate_out(data_width-1 downto 0) <= operand_B srl operand_A;
+                intermediate_out(data_width-1 downto 0) <= std_logic_vector(unsigned(operand_B) srl to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0))));
             when alu_sra =>
                 -- shift right arithmetic
                 -- Here operand_B is rt and operand_A is shift amount or rs
-                intermediate_out(data_width-1 downto 0) <= std_logic_vector(signed(operand_B) sra signed(operand_A));
+                -- VHDL 2008 only:
+                --intermediate_out(data_width-1 downto 0) <= std_logic_vector(signed(operand_B) sra to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0))));
+                intermediate_out(data_width-1 downto 0) <= std_logic_vector(shift_right(signed(operand_B), to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0)))));
             when alu_count_leading_ones =>
             when alu_count_leading_zeros =>
             when alu_extend_byte =>
                 intermediate_out(byte_msb downto 0) <= operand_B(byte_msb downto 0);
-                intermediate_out(data_width downto byte_msb+1) <= (others <= operand_B(byte_msb));
+                intermediate_out(data_width downto byte_msb+1) <= (others => operand_B(byte_msb));
             when alu_extend_half =>
                 intermediate_out(halfword_msb downto 0) <= operand_B(halfword_msb downto 0);
-                intermadiate_out(data_width-1 downto halfword_msb+1) <= (others => opearnd_B(halfword_msb));
+                intermediate_out(data_width-1 downto halfword_msb+1) <= (others => operand_B(halfword_msb));
             when others =>
                 intermediate_out <= (others => '0');
                 overflow_flag <= '0';
