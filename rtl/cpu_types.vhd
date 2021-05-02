@@ -9,7 +9,7 @@ package cpu_types is
     constant shift_amount_bits : integer := 5;
     constant alu_control_width : integer := 5;
 
-    subtype alu_opcode is std_logic_vector(4 downto 0);
+    subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);
     constant alu_add : alu_opcode := "00000";
     constant alu_add_unsigned : alu_opcode := "00001";
     constant alu_sub : alu_opcode := "00010";

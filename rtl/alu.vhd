@@ -6,7 +6,10 @@ library periscore32;
 use periscore32.cpu_types.all;
 
 entity alu is
-    generic (data_width : integer := 32);
+    generic (
+        data_width : integer := 32;
+        alu_control_width : integer := 5
+    );
     port (
         operand_A : in std_logic_vector(data_width-1 downto 0);
         operand_B : in std_logic_vector(data_width-1 downto 0);
@@ -87,8 +90,8 @@ begin
                 -- VHDL 2008 only:
                 --intermediate_out(data_width-1 downto 0) <= std_logic_vector(signed(operand_B) sra to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0))));
                 intermediate_out(data_width-1 downto 0) <= std_logic_vector(shift_right(signed(operand_B), to_integer(unsigned(operand_A(shift_amount_bits-1 downto 0)))));
-            when alu_count_leading_ones =>
-            when alu_count_leading_zeros =>
+            --when alu_count_leading_ones =>
+            --when alu_count_leading_zeros =>
             when alu_extend_byte =>
                 intermediate_out(byte_msb downto 0) <= operand_B(byte_msb downto 0);
                 intermediate_out(data_width downto byte_msb+1) <= (others => operand_B(byte_msb));
