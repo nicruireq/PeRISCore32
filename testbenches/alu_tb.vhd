@@ -13,6 +13,7 @@ USE ieee.std_logic_1164.ALL;
 
 library periscore32;
 use periscore32.cpu_types.all;
+use periscore32.testbench_helpers.all;
 
 ENTITY alu_tb IS
 END alu_tb;
@@ -45,7 +46,6 @@ end component;
 	signal zero_flag : std_logic;
 	signal overflow_flag : std_logic;
 
-
 BEGIN
 
 	-- Instantiate the Unit Under Test (UUT)
@@ -62,17 +62,22 @@ BEGIN
 		zero_flag => zero_flag ,
 		overflow_flag => overflow_flag );
 
-
    -- Stimulus process
    stim_proc: process
    begin
-	-- Put test bench stimulus code here
+		-- two positive operands
 		operand_A <= x"00001388";	-- 5000
 		operand_B <= x"0008ff56";	-- 589654
 
 		control <= alu_add;
-		assert computation_out = x"000912de" report "alu_add: bad result";
-		wait for 100 ns;
+		--wait for 50 ns;
+		--assert computation_out = x"000912de" report "alu_add: bad result";
+		--wait for 50 ns;
+		assert_comb_eq(
+			computation_out, x"000912de",
+			"alu_add: bad result",
+			100 ns
+		);
 
 		control <= alu_add_unsigned;
 		assert computation_out = x"000912de" report "alu_add_unsigned: bad result";
@@ -126,7 +131,7 @@ BEGIN
 
 		-- shift right arithmetic with negative operand
 		operand_A <= x"ff695b4c";	-- -9872564
-		control <= alu_sra
+		control <= alu_sra;
 		assert computation_out = x"ffff695b" report "alu_sra: bad result";
 		wait for 100 ns;
 
@@ -157,10 +162,54 @@ BEGIN
 		wait for 100 ns;
 
 		-- overflows testing
-		--operand_A <= x"80000000";
-		--operand_B <= x"";
+		operand_A <= x"80000000";
+		operand_B <= x"ffffffff";
 		
+		control <= alu_add;
+		assert computation_out = x"7fffffff" report "alu_add - signed add overflow result: bad";
+		assert overflow_flag = '1' report "alu_add - signed add overflow not active";
+		wait for 100 ns;
+
+		control <= alu_add_unsigned;
+		assert computation_out = x"7fffffff" report "alu_add_unsigned - unsigned add result: bad";
+		assert overflow_flag = '0' report "alu_add_unsigned - unsigned add overflow must not be active";
+		wait for 100 ns;
+
+		operand_B <= x"00000001";
+		control <= alu_sub;
+		assert computation_out = x"7fffffff" report "alu_sub - signed substract result: bad";
+		assert overflow_flag = '1' report "alu_sub - signed substract overflow not active";
+		wait for 100 ns;
+
+		control <= alu_sub_unsigned;
+		assert computation_out = x"7fffffff" report "alu_sub_unsigned - unsigned substract result: bad";
+		assert overflow_flag = '0' report "alu_sub_unsigned - unsigned substract overflow must not be active";
+		wait for 100 ns;
+
+		-- lui, byte, half extensions
+		operand_B <= x"00000819";
+		control <= alu_lui;
+		assert computation_out = x"08190000" report "alu_lui: bad result";
+		wait for 100 ns;
+
+		control <= alu_extend_byte;
+		assert computation_out = x"00000019" report "alu_extend_byte: positive byte bad result";
+		wait for 100 ns;
+
+		operand_B <= x"110010f7";
+		control <= alu_extend_byte;
+		assert computation_out = x"fffffff7" report "alu_extend_byte: negative byte bad result";
+		wait for 100 ns;
+
+		control <= alu_extend_half;
+		assert computation_out = x"000010f7" report "alu_extend_half: positive halfword bad result";
+		wait for 100 ns;		
 		
+		operand_B <= x"0142ea60";	-- b15 to b0 -> -5536 
+		control <= alu_extend_half;
+		assert computation_out = x"ffffea60" report "alu_extend_half: negative halfword bad result";
+		wait for 100 ns;
+
       wait;
    end process;
 

@@ -8,6 +8,9 @@ package cpu_types is
     constant halfword_msb : integer := 15;
     constant shift_amount_bits : integer := 5;
     constant alu_control_width : integer := 5;
+    constant word_width : integer := 32;
+
+    subtype word is std_logic_vector(word_width-1 downto 0);
 
     subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);
     constant alu_add : alu_opcode := "00000";
