@@ -53,14 +53,14 @@ begin
                 intermediate_out <= std_logic_vector(unsigned(temp_A) - unsigned(temp_B));
             when alu_set_on_less =>
                 if signed(operand_A) < signed(operand_B) then
-                    intermediate_out(data_width downto 1) <= (others => '0');
+                    intermediate_out(data_width-1 downto 1) <= (others => '0');
                     intermediate_out(0) <= '1';
                 else
                     intermediate_out <= (others => '0');
                 end if ;
             when alu_set_on_less_unsigned =>
                 if unsigned(operand_A) < unsigned(operand_B) then
-                    intermediate_out(data_width downto 1) <= (others => '0');
+                    intermediate_out(data_width-1 downto 1) <= (others => '0');
                     intermediate_out(0) <= '1';
                 else
                     intermediate_out <= (others => '0');
@@ -94,7 +94,7 @@ begin
             --when alu_count_leading_zeros =>
             when alu_extend_byte =>
                 intermediate_out(byte_msb downto 0) <= operand_B(byte_msb downto 0);
-                intermediate_out(data_width downto byte_msb+1) <= (others => operand_B(byte_msb));
+                intermediate_out(data_width-1 downto byte_msb+1) <= (others => operand_B(byte_msb));
             when alu_extend_half =>
                 intermediate_out(halfword_msb downto 0) <= operand_B(halfword_msb downto 0);
                 intermediate_out(data_width-1 downto halfword_msb+1) <= (others => operand_B(halfword_msb));

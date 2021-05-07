@@ -75,140 +75,288 @@ BEGIN
 		--wait for 50 ns;
 		assert_comb_eq(
 			computation_out, x"000912de",
-			"alu_add: bad result",
-			100 ns
+			"alu_add: bad result", 100 ns
 		);
 
 		control <= alu_add_unsigned;
-		assert computation_out = x"000912de" report "alu_add_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"000912de",
+			"alu_add_unsigned: bad result", 100 ns
+		);
+		--assert computation_out = x"000912de" report "alu_add_unsigned: bad result";
+		--wait for 100 ns;
 
 		control <= alu_sub;
-		assert computation_out = x"fff71432" report "alu_sub: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"fff71432",
+			"alu_sub: bad result", 100 ns
+		);
+		--assert computation_out = x"fff71432" report "alu_sub: bad result";
+		--wait for 100 ns;
 
 		control <= alu_sub_unsigned;
-		assert computation_out = x"fff71432" report "alu_sub_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"fff71432",
+			"alu_sub_unsigned: bad result",
+			100 ns
+		);
+		--assert computation_out = x"fff71432" report "alu_sub_unsigned: bad result";
+		--wait for 100 ns;
 
 		control <= alu_set_on_less;
-		assert computation_out = x"00000001" report "alu_set_on_less: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000001",
+			"alu_set_on_less: bad result",
+			100 ns
+		);
+		--assert computation_out = x"00000001" report "alu_set_on_less: bad result";
+		--wait for 100 ns;
 
 		control <= alu_set_on_less_unsigned;
-		assert computation_out = x"00000001" report "alu_set_on_less_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000001",
+			"alu_set_on_less_unsigned: bad result",
+			100 ns
+		);
+		--assert computation_out = x"00000001" report "alu_set_on_less_unsigned: bad result";
+		--wait for 100 ns;
 
 		control <= alu_and;
-		assert computation_out = x"00001300" report "alu_and: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00001300",
+			"alu_and: bad result", 100 ns
+		);
+		--assert computation_out = x"00001300" report "alu_and: bad result";
+		--wait for 100 ns;
 
 		control <= alu_xor;
-		assert computation_out = x"0008ecde" report "alu_xor: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"0008ecde",
+			"alu_xor: bad result", 100 ns
+		);
+		--assert computation_out = x"0008ecde" report "alu_xor: bad result";
+		--wait for 100 ns;
 
 		control <= alu_nor;
-		assert computation_out = x"fff70021" report "alu_nor: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"fff70021",
+			"alu_nor: bad result", 100 ns
+		);
+		--assert computation_out = x"fff70021" report "alu_nor: bad result";
+		--wait for 100 ns;
 		
 		control <= alu_or;
-		assert computation_out = x"0008ffde" report "alu_or: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"0008ffde",
+			"alu_or: bad result", 100 ns
+		);
+		--assert computation_out = x"0008ffde" report "alu_or: bad result";
+		--wait for 100 ns;
 
 		-- shifts with positive operand
-		operand_B <= x"00000008";	-- 8
+		operand_A <= x"00000008";	-- 8
+		operand_B <= x"00001388";	-- 5000
 		control <= alu_sll;
-		assert computation_out = x"00138800" report "alu_sll: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00138800",
+			"alu_sll: bad result", 100 ns
+		);
+		--assert computation_out = x"00138800" report "alu_sll: bad result";
+		--wait for 100 ns;
 
 		control <= alu_slr;
-		assert computation_out = x"00000013" report "alu_slr: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000013",
+			"alu_slr: bad result", 100 ns
+		);
+		--assert computation_out = x"00000013" report "alu_slr: bad result";
+		--wait for 100 ns;
 
 		control <= alu_sra;
-		assert computation_out = x"00000013" report "alu_sra: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000013",
+			"alu_sra: bad result", 100 ns
+		);
+		--assert computation_out = x"00000013" report "alu_sra: bad result";
+		--wait for 100 ns;
 
 		-- shift right arithmetic with negative operand
-		operand_A <= x"ff695b4c";	-- -9872564
+		operand_B <= x"ff695b4c";	-- -9872564
 		control <= alu_sra;
-		assert computation_out = x"ffff695b" report "alu_sra: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ffff695b",
+			"alu_sra: bad result", 100 ns
+		);
+		--assert computation_out = x"ffff695b" report "alu_sra: bad result";
+		--wait for 100 ns;
 
 		-- one negative and one positive
+		operand_A <= x"ff695b4c";	-- -9872564
 		operand_B <= x"0008ff56";
 		control <= alu_add;
-		assert computation_out = x"ff725aa2" report "alu_add: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ff725aa2",
+			"alu_add: bad result", 100 ns
+		);
+		--assert computation_out = x"ff725aa2" report "alu_add: bad result";
+		--wait for 100 ns;
 
 		control <= alu_add_unsigned;
-		assert computation_out = x"ff725aa2" report "alu_add_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ff725aa2",
+			"alu_add_unsigned: bad result", 100 ns
+		);
+		--assert computation_out = x"ff725aa2" report "alu_add_unsigned: bad result";
+		--wait for 100 ns;
 
 		control <= alu_sub;
-		assert computation_out = x"ff605bf6" report "alu_sub: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ff605bf6",
+			"alu_sub: bad result", 100 ns
+		);
+		--assert computation_out = x"ff605bf6" report "alu_sub: bad result";
+		--wait for 100 ns;
 
 		control <= alu_sub_unsigned;
-		assert computation_out = x"ff605bf6" report "alu_sub_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ff605bf6",
+			"alu_sub_unsigned: bad result", 
+			100 ns
+		);
+		--assert computation_out = x"ff605bf6" report "alu_sub_unsigned: bad result";
+		--wait for 100 ns;
 
 		control <= alu_set_on_less;
-		assert computation_out = x"00000001" report "alu_set_on_less: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000001",
+			"alu_set_on_less: bad result", 
+			100 ns
+		);
+		--assert computation_out = x"00000001" report "alu_set_on_less: bad result";
+		--wait for 100 ns;
 
 		control <= alu_set_on_less_unsigned;
-		assert computation_out = x"00000000" report "alu_set_on_less_unsigned: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000000",
+			"alu_set_on_less_unsigned: bad result", 
+			100 ns
+		);
+		--assert computation_out = x"00000000" report "alu_set_on_less_unsigned: bad result";
+		--wait for 100 ns;
 
 		-- overflows testing
 		operand_A <= x"80000000";
 		operand_B <= x"ffffffff";
 		
 		control <= alu_add;
-		assert computation_out = x"7fffffff" report "alu_add - signed add overflow result: bad";
-		assert overflow_flag = '1' report "alu_add - signed add overflow not active";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"7fffffff",
+			"alu_add - signed add overflow result: bad", 
+			100 ns
+		);
+		assert_comb_eq(
+			overflow_flag, '1',
+			"alu_add - signed add overflow not active", 
+			0 ns
+		);
+		--assert computation_out = x"7fffffff" report "alu_add - signed add overflow result: bad";
+		--assert overflow_flag = '1' report "alu_add - signed add overflow not active";
+		--wait for 100 ns;
 
 		control <= alu_add_unsigned;
-		assert computation_out = x"7fffffff" report "alu_add_unsigned - unsigned add result: bad";
-		assert overflow_flag = '0' report "alu_add_unsigned - unsigned add overflow must not be active";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"7fffffff",
+			"alu_add_unsigned - unsigned add result: bad", 
+			100 ns
+		);
+		assert_comb_eq(
+			overflow_flag, '0',
+			"alu_add_unsigned - unsigned add overflow must not be active", 
+			0 ns
+		);
+		--assert computation_out = x"7fffffff" report "alu_add_unsigned - unsigned add result: bad";
+		--assert overflow_flag = '0' report "alu_add_unsigned - unsigned add overflow must not be active";
+		--wait for 100 ns;
 
 		operand_B <= x"00000001";
 		control <= alu_sub;
-		assert computation_out = x"7fffffff" report "alu_sub - signed substract result: bad";
-		assert overflow_flag = '1' report "alu_sub - signed substract overflow not active";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"7fffffff",
+			"alu_sub - signed substract result: bad", 
+			100 ns
+		);
+		assert_comb_eq(
+			overflow_flag, '1',
+			"alu_sub - signed substract overflow not active", 
+			0 ns
+		);
+		--assert computation_out = x"7fffffff" report "alu_sub - signed substract result: bad";
+		--assert overflow_flag = '1' report "alu_sub - signed substract overflow not active";
+		--wait for 100 ns;
 
 		control <= alu_sub_unsigned;
-		assert computation_out = x"7fffffff" report "alu_sub_unsigned - unsigned substract result: bad";
-		assert overflow_flag = '0' report "alu_sub_unsigned - unsigned substract overflow must not be active";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"7fffffff",
+			"alu_sub_unsigned - unsigned substract result: bad", 
+			100 ns
+		);
+		assert_comb_eq(
+			overflow_flag, '0',
+			"alu_sub_unsigned - unsigned substract overflow must not be active", 
+			0 ns
+		);
+		--assert computation_out = x"7fffffff" report "alu_sub_unsigned - unsigned substract result: bad";
+		--assert overflow_flag = '0' report "alu_sub_unsigned - unsigned substract overflow must not be active";
+		--wait for 100 ns;
 
 		-- lui, byte, half extensions
 		operand_B <= x"00000819";
 		control <= alu_lui;
-		assert computation_out = x"08190000" report "alu_lui: bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"08190000",
+			"alu_lui: bad result", 
+			100 ns
+		);
+		--assert computation_out = x"08190000" report "alu_lui: bad result";
+		--wait for 100 ns;
 
 		control <= alu_extend_byte;
-		assert computation_out = x"00000019" report "alu_extend_byte: positive byte bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"00000019",
+			"alu_extend_byte: positive byte bad result", 
+			100 ns
+		);
+		--assert computation_out = x"00000019" report "alu_extend_byte: positive byte bad result";
+		--wait for 100 ns;
 
 		operand_B <= x"110010f7";
 		control <= alu_extend_byte;
-		assert computation_out = x"fffffff7" report "alu_extend_byte: negative byte bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"fffffff7",
+			"alu_extend_byte: negative byte bad result", 
+			100 ns
+		);
+		--assert computation_out = x"fffffff7" report "alu_extend_byte: negative byte bad result";
+		--wait for 100 ns;
 
 		control <= alu_extend_half;
-		assert computation_out = x"000010f7" report "alu_extend_half: positive halfword bad result";
-		wait for 100 ns;		
+		assert_comb_eq(
+			computation_out, x"000010f7",
+			"alu_extend_half: positive halfword bad result", 
+			100 ns
+		);
+		--assert computation_out = x"000010f7" report "alu_extend_half: positive halfword bad result";
+		--wait for 100 ns;		
 		
 		operand_B <= x"0142ea60";	-- b15 to b0 -> -5536 
 		control <= alu_extend_half;
-		assert computation_out = x"ffffea60" report "alu_extend_half: negative halfword bad result";
-		wait for 100 ns;
+		assert_comb_eq(
+			computation_out, x"ffffea60",
+			"alu_extend_half: negative halfword bad result", 
+			100 ns
+		);
+		--assert computation_out = x"ffffea60" report "alu_extend_half: negative halfword bad result";
+		--wait for 100 ns;
 
       wait;
    end process;
