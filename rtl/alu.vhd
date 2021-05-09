@@ -35,20 +35,10 @@ begin
         
             when alu_add =>
                 intermediate_out <= std_logic_vector(signed(temp_A) + signed(temp_B));
-                if intermediate_out(data_width) /= intermediate_out(data_width-1) then
-                    overflow_flag <= '1';
-                else 
-                    overflow_flag <= '0';
-                end if ;
             when alu_add_unsigned =>
                 intermediate_out <= std_logic_vector(unsigned(temp_A) + unsigned(temp_B));
             when alu_sub =>
                 intermediate_out <= std_logic_vector(signed(temp_A) - signed(temp_B));
-                if intermediate_out(data_width) /= intermediate_out(data_width-1) then
-                    overflow_flag <= '1';
-                else 
-                    overflow_flag <= '0';
-                end if ;
             when alu_sub_unsigned =>
                 intermediate_out <= std_logic_vector(unsigned(temp_A) - unsigned(temp_B));
             when alu_set_on_less =>
@@ -100,11 +90,26 @@ begin
                 intermediate_out(data_width-1 downto halfword_msb+1) <= (others => operand_B(halfword_msb));
             when others =>
                 intermediate_out <= (others => '0');
-                overflow_flag <= '0';
-                zero_flag <= '0'; -- is not used
         end case ;
     end process ; -- computations
 
+    overflow_detection : process (intermediate_out, control)
+    begin
+        if (control = alu_add) or (control = alu_sub) then
+            if intermediate_out(data_width) /= intermediate_out(data_width-1) then
+                overflow_flag <= '1';
+            else
+                overflow_flag <= '0';
+            end if;
+        else
+            overflow_flag <= '0';
+        end if ;
+    end process ;
+    --overflow_flag <= '1' when intermediate_out(data_width) /= intermediate_out(data_width-1)
+    --                 else '0';
+
     computation_out <= intermediate_out(data_width-1 downto 0);
+
+    zero_flag <= '0'; -- is not used
 
 end behavioural ; -- behavioural
