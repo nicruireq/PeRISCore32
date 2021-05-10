@@ -31,6 +31,11 @@ begin
 
     computations : process( operand_A, operand_B, control, temp_A, temp_B )
     begin
+        -- if only keeps a case statement dependent on control input
+        -- synthesis tools infers a latch for intermediate_out
+        -- because the process is triggered when for example temp_A changes too
+        -- then you need to write a default value for intermediate_out
+        intermediate_out <= (others => '0');
         case( control ) is
         
             when alu_add =>
