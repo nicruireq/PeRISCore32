@@ -38,13 +38,13 @@ begin
         intermediate_out <= (others => '0');
         case( control ) is
         
-            when alu_add =>
-                intermediate_out <= std_logic_vector(signed(temp_A) + signed(temp_B));
-            when alu_add_unsigned =>
+           -- when alu_add =>
+           --     intermediate_out <= std_logic_vector(signed(temp_A) + signed(temp_B));
+            when alu_add | alu_add_unsigned =>
                 intermediate_out <= std_logic_vector(unsigned(temp_A) + unsigned(temp_B));
-            when alu_sub =>
-                intermediate_out <= std_logic_vector(signed(temp_A) - signed(temp_B));
-            when alu_sub_unsigned =>
+           -- when alu_sub =>
+           --     intermediate_out <= std_logic_vector(signed(temp_A) - signed(temp_B));
+            when alu_sub | alu_sub_unsigned =>
                 intermediate_out <= std_logic_vector(unsigned(temp_A) - unsigned(temp_B));
             when alu_set_on_less =>
                 if signed(operand_A) < signed(operand_B) then
