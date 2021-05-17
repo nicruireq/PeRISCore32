@@ -1,5 +1,5 @@
 -------------------------------------------------------
---! @file
+--! @file   cpu_types.vhd
 --! @brief Type and constant definitions for
 --!        PeRISCore32
 -------------------------------------------------------
@@ -29,6 +29,8 @@ package cpu_types is
 
     subtype word is std_logic_vector(word_width-1 downto 0);
     subtype halfword is std_logic_vector(half_width-1 downto 0);
+    subtype control_signal is std_logic;
+    subtype alu_control is std_logic_vector(2 downto 0) ;
 
     --! type representing ALU's control words
     subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);
@@ -92,6 +94,7 @@ package cpu_types is
     --! Pipeline register of 
     --! Instruction Fetch to Decode stages
     type IF_ID is record
+        pc : word;
         instruction : word;
     end record IF_ID;
     
@@ -102,20 +105,55 @@ package cpu_types is
         operand_A : word;
         operand_B : word;
         immediate : halfword;
-        -- signals in this register
-
+        -- signals in id/ex register
+        pc_src : control_signal;
+        reg_write : control_signal;
+        --branch : control_signal;  -- used in ID
+        --jump : control_signal;    -- used in ID
+        alu_op : alu_control;
+        alu_src : control_signal;
+        mem_read : control_signal;
+        mem_write : control_signal;
+        mem_to_reg : control_signal;
     end record ID_EX;
 
     --! Pipeline register of 
     --! Instruction Execution to Memory stages
     type EX_MEM is record
         instruction : word;
+        mem_address : word;
+        alu_result : word;
+        -- signals in ex/mem register
+        mem_read : control_signal;
+        mem_write : control_signal;
+        mem_to_reg : control_signal;
     end record EX_MEM;
 
     --! Pipeline register of 
     --! Instruction Memory to Writeback stages
     type MEM_WB is record
         instruction : word;
+        mem_data : word;
+        alu_result : word;
+        -- signals in ex/mem register
+        mem_to_reg : control_signal;
     end record MEM_WB;
-    
+
+    -------------------------------------------------------
+    --      CONTROL SIGNALS TYPES 
+    -------------------------------------------------------
+
+    --! Total sum of width in bits from main control signals
+    constant width_control_signals : integer := 9;
+    --! Type representing the bus formed by the control 
+    --! signals of the main control unit
+    subtype main_control_bus 
+        is std_logic_vector(width_control_signals-1 downto 0);
+    --! Width in bits of alu_op control signal. This bus
+    --! is the input of ALU control unit
+    constant alu_op_width : integer := 3;
+    --! Type representing input control signals to the ALU
+    subtype alu_control_bus 
+        is std_logic_vector(alu_control_width-1 downto 0);
+
 end package ;
