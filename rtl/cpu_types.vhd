@@ -144,14 +144,14 @@ package cpu_types is
     -------------------------------------------------------
 
     --! Total sum of width in bits from main control signals
-    constant width_control_signals : integer := 9;
+    constant width_control_signals : integer := 13;
     --! Type representing the bus formed by the control 
     --! signals of the main control unit
     subtype main_control_bus 
         is std_logic_vector(width_control_signals-1 downto 0);
     --! Width in bits of alu_op control signal. This bus
     --! is the input of ALU control unit
-    constant alu_op_width : integer := 3;
+    constant alu_op_width : integer := 4;
     --! Type representing input control signals to the ALU
     subtype alu_control_bus 
         is std_logic_vector(alu_control_width-1 downto 0);

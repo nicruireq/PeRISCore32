@@ -110,8 +110,6 @@ begin
             overflow_flag <= '0';
         end if ;
     end process ;
-    --overflow_flag <= '1' when intermediate_out(data_width) /= intermediate_out(data_width-1)
-    --                 else '0';
 
     computation_out <= intermediate_out(data_width-1 downto 0);
 

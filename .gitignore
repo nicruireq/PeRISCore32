@@ -1,3 +1,5 @@
 # Discard vivado project directory
 workspace
 .Xil
+
+*.ods
