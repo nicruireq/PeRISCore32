@@ -8,6 +8,7 @@ use ieee.std_logic_1164.all;
 
 library periscore32;
 use periscore32.cpu_types.all;
+use periscore32.memory_utils.all;
 
 --! Pipelined data path able to execute
 --! a subset of mips32r2 instructions.
@@ -31,16 +32,19 @@ use periscore32.cpu_types.all;
 --!   + beq, j
 --! This version does not include hazard control
 --!
-entity pipeline_datapath is
+entity pipelined_datapath is
     port (
         clk : std_logic;
         
     ) ;
-end pipeline_datapath ;
+end pipelined_datapath ;
 
-architecture rtl of pipeline_datapath is
+architecture rtl of pipelined_datapath is
 
-
+    signal if_id : IF_ID;
+    signal id_ex : ID_EX;
+    signal ex_mem : EX_MEM;
+    signal mem_wb : MEM_WB;
 
 begin
 

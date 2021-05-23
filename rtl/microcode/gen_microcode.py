@@ -37,7 +37,7 @@ def main(argv):
                     each line represents a sorted address
 
         Returns:
-        file: .dat file with the memory address, e.g.:
+        file: .dat file with the memory image, e.g.:
             001010
             110101
             101010

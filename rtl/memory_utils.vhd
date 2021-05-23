@@ -23,9 +23,16 @@ package memory_utils is
     type control_unit_rom is array (0 to (2**opcode_width)-1)
             of  main_control_bus;
     
-    --! Type to build the ALU control unit's ROM
+    --! Type to build the ALU control unit's ROM for not-class
+    --! instructions
     type alu_control_rom is array (0 to (2**alu_op_width)-1)
             of alu_control_bus;
+
+    --! Type to build the ALU control unit's ROM for SPECIAL
+    --! class instructions
+    type special_control_rom is array (0 to (2**function_width)-1)
+            of special_control_bus;
+
 
     -------------------------------------------------------
     --      FUNCTION DECLARATIONS TO LOAD MEMORIES 
@@ -35,7 +42,10 @@ package memory_utils is
         return control_unit_rom;
 
     impure function load_memory_from_file(file_name : in string)
-        return alu_control_bus;
+        return alu_control_rom;
+    
+    impure function load_memory_from_file(file_name : in string)
+        return special_control_rom;
 
 end package;
 
@@ -60,6 +70,7 @@ package body memory_utils is
             read(mline, temp_mem(i));
         end loop;
 
+        return temp_mem;
     end function;
 
     --!
@@ -81,6 +92,29 @@ package body memory_utils is
             read(mline, temp_mem(i));
         end loop;
 
+        return temp_mem;
+    end function;
+
+    --!
+    --!
+    impure function load_memory_from_file(file_name : in string)
+            return special_control_rom is
+
+        -- "fdata" is the object type "file"
+        file fdata : text open read_mode is file_name;
+        -- "mline" is a variable to read the file, line to line
+        variable mline : line;
+        -- "temp_mem" is a variable to read values in a line
+        variable temp_mem: special_control_rom;
+        
+    begin
+
+        for i in ram_type'range loop
+            readline(fdata, mline);
+            read(mline, temp_mem(i));
+        end loop;
+
+        return temp_mem;
     end function;
 
 end package body;

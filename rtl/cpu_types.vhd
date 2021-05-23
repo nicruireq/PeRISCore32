@@ -30,7 +30,7 @@ package cpu_types is
     subtype word is std_logic_vector(word_width-1 downto 0);
     subtype halfword is std_logic_vector(half_width-1 downto 0);
     subtype control_signal is std_logic;
-    subtype alu_control is std_logic_vector(2 downto 0) ;
+    subtype alu_control is std_logic_vector(3 downto 0) ;
 
     --! type representing ALU's control words
     subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);
@@ -104,14 +104,18 @@ package cpu_types is
         instruction : word;
         operand_A : word;
         operand_B : word;
+        -- sign extended immediate
         immediate : halfword;
+        -- zero extended shift amount
+        shift_amount : word;
         -- signals in id/ex register
-        pc_src : control_signal;
+        --pc_src : control_signal;  -- HAY QUE QUITARLA? ES CONSUMIDA EN ESTA ETAPA?
         reg_write : control_signal;
         --branch : control_signal;  -- used in ID
         --jump : control_signal;    -- used in ID
         alu_op : alu_control;
-        alu_src : control_signal;
+        operandB_src : control_signal;
+        sel_alu_control : control_signal;
         mem_read : control_signal;
         mem_write : control_signal;
         mem_to_reg : control_signal;
@@ -143,6 +147,10 @@ package cpu_types is
     --      CONTROL SIGNALS TYPES 
     -------------------------------------------------------
 
+    -- NOTE: We need a lot of types definition because the lack
+    -- of generic types, function list, generics in functions
+    -- in vivado synthesis (vhdl-2008 features)
+
     --! Total sum of width in bits from main control signals
     constant width_control_signals : integer := 13;
     --! Type representing the bus formed by the control 
@@ -155,5 +163,12 @@ package cpu_types is
     --! Type representing input control signals to the ALU
     subtype alu_control_bus 
         is std_logic_vector(alu_control_width-1 downto 0);
+    --! Width in bits of function instruction field . This bus
+    --! is the input of SPECIAL ALU control unit
+    constant function_width : integer := 6;
+    --! Type representing output bus width of the SPECIAL
+    --! ALU control unit (ALU control bus signals + operandA_src signal)
+    subtype special_control_bus 
+        is std_logic_vector(alu_control_width downto 0);
 
 end package ;
