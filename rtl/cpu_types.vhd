@@ -7,6 +7,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library periscore32;
+
 package cpu_types is
 
     --! most significant bit in a byte
@@ -26,11 +28,15 @@ package cpu_types is
     constant half_width : integer := 16;
     --! number of bits in a byte
     constant byte_width : integer := 8;
+    --! number of registers in register file
+    constant registers_amount : integer := 32;
 
     subtype word is std_logic_vector(word_width-1 downto 0);
     subtype halfword is std_logic_vector(half_width-1 downto 0);
     subtype control_signal is std_logic;
     subtype alu_control is std_logic_vector(3 downto 0) ;
+
+    constant next_address_bytes : word := x"00000004";
 
     --! type representing ALU's control words
     subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);

@@ -33,7 +33,6 @@ package memory_utils is
     type special_control_rom is array (0 to (2**function_width)-1)
             of special_control_bus;
 
-
     -------------------------------------------------------
     --      FUNCTION DECLARATIONS TO LOAD MEMORIES 
     -------------------------------------------------------
@@ -65,7 +64,7 @@ package body memory_utils is
 
     begin
 
-        for i in ram_type'range loop
+        for i in control_unit_rom'range loop
             readline(fdata, mline);
             read(mline, temp_mem(i));
         end loop;
@@ -87,7 +86,7 @@ package body memory_utils is
         
     begin
 
-        for i in ram_type'range loop
+        for i in alu_control_rom'range loop
             readline(fdata, mline);
             read(mline, temp_mem(i));
         end loop;
@@ -109,7 +108,7 @@ package body memory_utils is
         
     begin
 
-        for i in ram_type'range loop
+        for i in special_control_rom'range loop
             readline(fdata, mline);
             read(mline, temp_mem(i));
         end loop;
