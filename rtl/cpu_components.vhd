@@ -11,17 +11,34 @@ library periscore32;
 
 package cpu_components is
     
-    component cache_L1 is
+    component direct_mapped_DCache is
         generic(
-            address_bits : integer := 32; --! width in bits of input address
-            depth_bits : integer := 8; --! number of memory rows = 2^depth_bits
-            width : integer := 32 --! memory word width in bits
+            address_bits : integer := 32; 
+            index_width : integer := 8; 
+            block_size : integer := 32; 
+            byte_select : integer := 2 
         );
         port (
             clk : in std_logic;
-            enable : in std_logic;
             write_enable : in std_logic;
-            --read_enable : in std_logic;
+            address : in word;
+            select_type : in operand_type;   
+            signed_unsigned : in std_logic; 
+            data_in : in word;
+            data_out : out word
+        );
+    end component ;
+
+    component direct_mapped_ICache is
+        generic(
+            address_bits : integer := 32; 
+            index_width : integer := 8; 
+            block_size : integer := 32; 
+            byte_select : integer := 2 
+        );
+        port (
+            clk : in std_logic;
+            write_enable : in std_logic;
             address : in word;
             data_in : in word;
             data_out : out word

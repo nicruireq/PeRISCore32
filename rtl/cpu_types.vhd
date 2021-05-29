@@ -11,6 +11,9 @@ library periscore32;
 
 package cpu_types is
 
+    --! enumerated type to difference between
+    --! operand types allowed by the cpu
+    type operand_type is (OP_BYTE, OP_HALF, OP_WORD);
     --! most significant bit in a byte
     constant byte_msb : integer := 7;
     --! most significant bit in a half word
@@ -31,6 +34,7 @@ package cpu_types is
     --! number of registers in register file
     constant registers_amount : integer := 32;
 
+    subtype byte is std_logic_vector(byte_width-1 downto 0);
     subtype word is std_logic_vector(word_width-1 downto 0);
     subtype halfword is std_logic_vector(half_width-1 downto 0);
     subtype control_signal is std_logic;
@@ -133,6 +137,7 @@ package cpu_types is
         instruction : word;
         mem_address : word;
         alu_result : word;
+        operand_B : word;   -- for store instruction
         -- signals in ex/mem register
         mem_read : control_signal;
         mem_write : control_signal;
