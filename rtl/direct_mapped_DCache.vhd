@@ -60,8 +60,8 @@ architecture behavioral of direct_mapped_DCache is
     --! To select tag MSB bit in address
     constant th : integer := tl + (tag_width - 1);
     -- index that belongs to the input address
-    shared variable current : integer 
-            := to_integer(unsigned(address(ih downto il)));
+    --shared variable current : integer 
+    --        := to_integer(unsigned(address(ih downto il)));
 
     --===================================
     -- Intermediate signals for outputs
@@ -79,18 +79,18 @@ begin
     begin
         if rising_edge(clk) then
             if write_enable = '1' then
-                tags(current) <= address(th downto tl);
-                valids(current) <= '1';
+                tags(to_integer(unsigned(address(ih downto il)))) <= address(th downto tl);
+                valids(to_integer(unsigned(address(ih downto il)))) <= '1';
                 case( select_type ) is
                     when OP_WORD =>
-                        data_blocks(current) <= data_in;
+                        data_blocks(to_integer(unsigned(address(ih downto il)))) <= data_in;
                     when OP_HALF =>
                         case( address(bsh downto bsl) ) is
                             when "10" =>
-                                data_blocks(current)(31 downto 16)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(31 downto 16)
                                     <= data_in(half_width-1 downto 0);
                             when "00" =>
-                                data_blocks(current)(15 downto 0)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(15 downto 0)
                                     <= data_in(half_width-1 downto 0);
                             when others =>
                                 null;
@@ -98,16 +98,16 @@ begin
                     when OP_BYTE =>
                         case( address(bsh downto bsl) ) is
                             when "11" =>
-                                data_blocks(current)(31 downto 24)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(31 downto 24)
                                     <= data_in(byte_width-1 downto 0);
                             when "10" =>
-                                data_blocks(current)(23 downto 16)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(23 downto 16)
                                     <= data_in(byte_width-1 downto 0);
                             when "01" =>
-                                data_blocks(current)(15 downto 8)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(15 downto 8)
                                     <= data_in(byte_width-1 downto 0);
                             when "00" =>
-                                data_blocks(current)(7 downto 0)
+                                data_blocks(to_integer(unsigned(address(ih downto il))))(7 downto 0)
                                     <= data_in(byte_width-1 downto 0);
                             when others =>
                                 null;
@@ -120,7 +120,7 @@ begin
         end if;
     end process;
 
-    data_line <= data_blocks(current);
+    data_line <= data_blocks(to_integer(unsigned(address(ih downto il))));
 
     -- Select correct byte to output
     data_byte <= data_line(31 downto 24) when address(bsh downto bsl) = "11"
@@ -158,9 +158,9 @@ begin
                    (others => '0');
 
     -- Select final data output according to validity
-    data_out <= data_blocks(current) when 
-                    tags(current) = address(th downto tl)
-                    and valids(current) = '1'
+    data_out <= data_blocks(to_integer(unsigned(address(ih downto il)))) when 
+                    tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+                    and valids(to_integer(unsigned(address(ih downto il)))) = '1'
                 else (others => '0');
 
 end architecture ; -- rtl

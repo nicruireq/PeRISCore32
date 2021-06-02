@@ -59,26 +59,35 @@ architecture behavioral of direct_mapped_ICache is
     constant tl : integer := ih + 1;
     --! To select tag MSB bit in address
     constant th : integer := tl + (tag_width - 1);
-    -- index that belongs to the input address
-    shared variable current : integer 
-            := to_integer(unsigned(address(ih downto il)));
+            
 begin
 
     rams_writing : process (clk)
     begin
         if rising_edge(clk) then
             if write_enable = '1' then
-                data_blocks(current) <= data_in;
-                tags(current) <= address(th downto tl);
-                valids(current) <= '1';
+                data_blocks(to_integer(unsigned(address(ih downto il)))) <= data_in;
+                tags(to_integer(unsigned(address(ih downto il)))) <= address(th downto tl);
+                valids(to_integer(unsigned(address(ih downto il)))) <= '1';
             end if;
         end if;
     end process;
 
-    
-    data_out <= data_blocks(current) when 
-                    tags(current) = address(th downto tl)
-                    and valids(current) = '1'
-                else (others => '0');
+    -- Synchronous reading
+    blocks_reading : process (clk)
+    begin
+        if rising_edge(clk) then
+            if (tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+                and valids(to_integer(unsigned(address(ih downto il)))) = '1') then
+                    data_out <= data_blocks(to_integer(unsigned(address(ih downto il))));
+            end if;
+        end if;
+    end process;
+
+    -- Asynchronous:
+    --data_out <= data_blocks(to_integer(unsigned(address(ih downto il)))) when 
+    --                tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+    --                and valids(to_integer(unsigned(address(ih downto il)))) = '1'
+    --            else (others => '0');
 
 end architecture ; -- rtl
