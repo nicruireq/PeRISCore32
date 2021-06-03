@@ -3,6 +3,8 @@
 --! @brief Direct mapped data cache L1 generic
 -------------------------------------------------------
 
+
+-- FAILED THIS DESIGN INFERS LATCHES
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -11,7 +13,7 @@ library periscore32;
 use periscore32.cpu_types.all;
 use periscore32.memory_utils.all;
 
-entity direct_mapped_DCache is
+entity direct_mapped_DCache_behav is
     generic(
         address_bits : integer := 32; --! width in bits of input address
         index_width : integer := 8; --! number of lines of cache index
@@ -29,9 +31,9 @@ entity direct_mapped_DCache is
         data_out : out word
         --hit_miss : out std_logic
     );
-end direct_mapped_DCache ;
+end direct_mapped_DCache_behav ;
 
-architecture behavioral of direct_mapped_DCache is
+architecture behavioral of direct_mapped_DCache_behav is
 
     --! number of cache tag bits
     constant tag_width : integer := address_bits - index_width - byte_select;
@@ -121,48 +123,84 @@ begin
         end if;
     end process;
 
-    data_line <= data_blocks(to_integer(unsigned(address(ih downto il))));
+    read_accurate_address_datatype : process (read_enable, address, tags, valids,
+                                              select_type, signed_unsigned)
+        variable data_line : std_logic_vector(block_size-1 downto 0);
+        variable data_word : word;
+        variable data_half : halfword;
+        variable data_byte : byte;
+        variable data_preout : std_logic_vector(block_size-1 downto 0);
+    begin
+        if read_enable = '1' then
+            data_line := data_blocks(to_integer(unsigned(address(ih downto il))));
+            case( select_type ) is
+                when OP_BYTE =>
+                    case( address(bsh downto bsl) ) is
+                        when "11" =>
+                        -- OTRO CASE EN CADA UNO PARA SIGNED/UNISIGNED U OTRO PROCESS??
+                            data_byte := data_line(31 downto 24);
+                        when "10" => 
+                            data_byte := data_line(23 downto 16);
+                        when "01" => 
+                            data_byte := data_line(15 downto 8);
+                        when "00" => 
+                            data_byte := data_line(7 downto 0);
+                        when others =>
+                            data_byte := (others => '0');
+                    end case ;
+                when OP_HALF =>
+                    case( address(bsh downto bsl) ) is
+                        when "10" => 
+                            data_half := data_line(31 downto 16);
+                        when "00" => 
+                            data_half := data_line(15 downto 0);
+                        when others =>
+                            data_half := (others => '0');
+                    end case ;
+                when OP_WORD =>
+                    data_word := data_line;
+                when others =>
+                    -- to avoid inferred latches
+                    data_byte := (others => '0');
+                    data_half := (others => '0');
+                    data_word := (others => '0');
+            end case ;
 
-    -- Select correct byte to output
-    data_byte <= data_line(31 downto 24) when address(bsh downto bsl) = "11"
-                    and select_type = OP_BYTE else
-                 data_line(23 downto 16) when address(bsh downto bsl) = "10"
-                    and select_type = OP_BYTE else
-                 data_line(15 downto 8) when address(bsh downto bsl) = "01"
-                    and select_type = OP_BYTE else
-                 data_line(7 downto 0) when address(bsh downto bsl) = "00"
-                    and select_type = OP_BYTE else
-                 (others => '0');
+            case( select_type ) is
+                when OP_BYTE =>
+                    case( signed_unsigned ) is
+                        when '0' =>
+                            data_preout := std_logic_vector(resize(signed(data_byte), data_out'length));
+                        when '1' =>
+                            data_preout := x"000000"&data_byte;
+                        when others =>
+                            data_preout := (others => '0');
+                    end case ;
+                when OP_HALF =>
+                    case( signed_unsigned ) is
+                        when '0' =>
+                            data_preout := std_logic_vector(resize(signed(data_half), data_out'length));
+                        when '1' =>
+                            data_preout := x"0000"&data_half;
+                        when others =>
+                            data_preout := (others => '0');
+                    end case ;
+                when OP_WORD =>
+                    data_preout := data_word;
+                when others =>
+                    data_preout := (others => '0');
+            end case ;
 
-    -- Select correct halfword to output
-    data_half <= data_line(31 downto 16) when address(bsh downto bsl) = "10"
-                    and select_type = OP_HALF else
-                 data_line(15 downto 0) when address(bsh downto bsl) = "00"
-                    and select_type = OP_HALF else
-                 (others => '0');
+            if tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+                    and valids(to_integer(unsigned(address(ih downto il)))) = '1' 
+            then
+                data_out <= data_preout;
+            else
+                data_out <= (others => '0');
+            end if;
 
-    data_word <= data_line when select_type = OP_WORD 
-                    --and address(bsh downto bsl) = "00"
-                 else (others => '0');
+        end if;
 
-    -- Select output data source and sign or zero extend
-    data_preout <= data_word 
-                        when select_type = OP_WORD else
-                   std_logic_vector(resize(signed(data_byte), data_preout'length)) 
-                        when select_type = OP_BYTE and signed_unsigned = '0' else
-                   x"000000"&data_byte 
-                        when select_type = OP_BYTE  and signed_unsigned = '1' else
-                   std_logic_vector(resize(signed(data_half), data_preout'length))
-                        when select_type = OP_HALF and signed_unsigned = '0' else
-                   x"0000"&data_half 
-                        when select_type = OP_HALF and signed_unsigned = '1' else
-                   (others => '0');
+    end process;
 
-    -- Select final data output according to validity
-    data_out <= data_preout when
-                    read_enable = '1' and
-                    tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
-                    and valids(to_integer(unsigned(address(ih downto il)))) = '1'
-                else (others => '0');
-
-end architecture ; -- rtl
+end architecture ;
