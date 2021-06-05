@@ -33,6 +33,8 @@ package cpu_types is
     constant byte_width : integer := 8;
     --! number of registers in register file
     constant registers_amount : integer := 32;
+    --! number of bits in register file address
+    constant regfile_address_width : integer := 5;
 
     subtype byte is std_logic_vector(byte_width-1 downto 0);
     subtype word is std_logic_vector(word_width-1 downto 0);
