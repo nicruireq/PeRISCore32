@@ -44,7 +44,7 @@ ARCHITECTURE behavior OF direct_mapped_DCache_tb IS
 	-- Inputs and Outputs
 	signal clk : std_logic;
 	signal write_enable : std_logic;
-    signal read_enable : in std_logic;
+    signal read_enable : std_logic;
 	signal address : word;
     signal select_type : operand_type;
     signal signed_unsigned : std_logic;
@@ -80,30 +80,130 @@ BEGIN
 
    -- Stimulus process
    stim_proc: process
-        variable addr_mod4 : 
+        variable addr_mod1 :
             unsigned(address'length-1 downto 0) := x"00000000";
+        variable addr_mod2 :
+            unsigned(address'length-1 downto 0) := x"00000008";
+        variable addr_mod4 : 
+            unsigned(address'length-1 downto 0) := x"00000010";
    begin
 
         -- Put initialisation code here
         wait for 20 ns;
 	    -- Put test bench stimulus code here
-        -- Writing
-        write_enable <= '1';
-        data_in <= rand_slv(data_in'length);
-        address <= std_logic_vector(addr_mod4);
-        wait for 10 ns;
-        gen_address : while addr_mod4 < x"000000ff" loop
-            --address <= std_logic_vector(to_unsigned(i, address'length));
-            addr_mod4 := addr_mod4 + x"00000004";
-            address <= std_logic_vector(addr_mod4);
-            data_in <= rand_slv(data_in'length);
-            wait for 10 ns;
-        end loop ; -- gen_address
-        
-        -- write 
 
-        -- reading
+        --=================
+        -- TEST WRITING
+        --=================
+
+        -- write 2 blocks with bytes
+        write_enable <= '1';
+        read_enable <= '0';
+        select_type <= OP_BYTE;
+
+        data_in <= x"000000" & rand_slv(byte_width);
+        address <= std_logic_vector(addr_mod1);
+        while addr_mod1 <= 7 loop
+            wait for 10 ns;
+            addr_mod1 := addr_mod1 + 1;
+            address <= std_logic_vector(addr_mod1);
+            data_in <= x"000000" & rand_slv(byte_width);
+        end loop ;
         
+        -- write 2 blocks with halfs
+        write_enable <= '1';
+        read_enable <= '0';
+        select_type <= OP_HALF;
+
+        data_in <= x"0000" & rand_slv(half_width);
+        address <= std_logic_vector(addr_mod2);
+        while addr_mod2 <= 15 loop
+            wait for 10 ns;
+            addr_mod2 := addr_mod2 + 2;
+            address <= std_logic_vector(addr_mod2);
+            if addr_mod2 = 12 then
+                data_in <= x"0000" & "1000101101001101";    -- -29875
+            else
+                data_in <= x"0000" & rand_slv(half_width);
+            end if;
+        end loop ;
+        
+        -- write 2 blocks with words
+        write_enable <= '1';
+        read_enable <= '0';
+        select_type <= OP_WORD;
+
+        data_in <= rand_slv(word_width);
+        address <= std_logic_vector(addr_mod4);
+        while addr_mod4 <= 23 loop
+            wait for 10 ns;
+            addr_mod4 := addr_mod4 + 4;
+            address <= std_logic_vector(addr_mod4);
+            data_in <= rand_slv(word_width);
+        end loop ;
+        
+        write_enable <= '0';
+        wait for 10 ns;
+
+        --=================
+        -- TEST READING
+        --=================
+        
+        addr_mod1 := x"00000000";
+        addr_mod2 := x"00000008";
+        addr_mod4 := x"00000010";
+
+        -- read block 1 as unigned bytes
+        read_enable <= '1';
+        select_type <= OP_BYTE;
+
+        signed_unsigned <= '1';
+        address <= std_logic_vector(addr_mod1);
+        while addr_mod1 <= 3 loop
+            wait for 10 ns;
+            addr_mod1 := addr_mod1 + 1;
+            address <= std_logic_vector(addr_mod1);
+        end loop ;
+
+        -- read block 2 as signed bytes
+        signed_unsigned <= '0';
+        address <= std_logic_vector(addr_mod1);
+        while addr_mod1 <= 7 loop
+            wait for 10 ns;
+            addr_mod1 := addr_mod1 + 1;
+            address <= std_logic_vector(addr_mod1);
+        end loop ;
+
+        -- read block 3 as unsigned halfs
+        select_type <= OP_HALF;
+        signed_unsigned <= '1';
+        address <= std_logic_vector(addr_mod2);
+        while addr_mod2 <= 11 loop
+            wait for 10 ns;
+            addr_mod2 := addr_mod2 + 2;
+            address <= std_logic_vector(addr_mod2);
+        end loop ;
+
+        -- read block 4 as signed halfs
+        signed_unsigned <= '0';
+        address <= std_logic_vector(addr_mod2);
+        while addr_mod2 <= 15 loop
+            wait for 10 ns;
+            addr_mod2 := addr_mod2 + 2;
+            address <= std_logic_vector(addr_mod2);
+        end loop ;
+
+        -- read blocks 5,6 as word
+        select_type <= OP_WORD;
+        address <= std_logic_vector(addr_mod4);
+        while addr_mod4 <= 23 loop
+            wait for 10 ns;
+            addr_mod4 := addr_mod4 + 4;
+            address <= std_logic_vector(addr_mod4);
+        end loop ;
+        
+        wait for 10 ns;
+        read_enable <= '0';
 
         wait;
    end process;
