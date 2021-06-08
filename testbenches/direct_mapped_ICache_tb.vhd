@@ -88,8 +88,7 @@ BEGIN
         data_in <= rand_slv(data_in'length);
         address <= std_logic_vector(addr_mod4);
         wait for 10 ns;
-        gen_address : while addr_mod4 < x"000000ff" loop
-            --address <= std_logic_vector(to_unsigned(i, address'length));
+        gen_address : while addr_mod4 < x"000003fc" loop
             addr_mod4 := addr_mod4 + x"00000004";
             address <= std_logic_vector(addr_mod4);
             data_in <= rand_slv(data_in'length);
@@ -97,7 +96,15 @@ BEGIN
         end loop ; -- gen_address
         
         -- reading
-        
+        write_enable <= '0';
+        address <= x"00000000";
+        addr_mod4 := x"00000000";
+        wait for 10 ns;
+        while addr_mod4 < x"000003fc" loop
+            addr_mod4 := addr_mod4 + x"00000004";
+            address <= std_logic_vector(addr_mod4);
+            wait for 10 ns;
+        end loop ; 
 
         wait;
    end process;

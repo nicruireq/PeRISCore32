@@ -55,6 +55,8 @@ architecture rtl of pipelined_datapath is
     signal pc_plus4 : word;
     signal branch_target_address : word;
     signal fetched_instruction : word;
+    signal operand_A : word;
+    signla operand_B : word;
 
 
 begin
@@ -64,7 +66,7 @@ begin
     --===================
 
     -- Select PC register source
-    with pcsrc select
+    with pc_src select
         pc_input <= pc_plus4 when '0',
                     branch_target_address when others;
     
@@ -72,10 +74,9 @@ begin
     pc_plus4 <= std_logic_vector(
         unsigned(next_address_bytes) + unsigned(PC));
 
-    instructions_cache : cache_L1
+    instructions_cache : direct_mapped_ICache
         port map(
             clk => clk,
-            enable => '1',
             write_enable => '0',
             address => pc,
             data_in => (others => '0'),
@@ -101,14 +102,36 @@ begin
     -- ID Stage logic
     --===================
 
+    register_file port map(
+        clk => clk,
+        reg_write => reg_write,
+        address_A => if_id.instruction(rs_h downto rs_l),
+        address_B => if_id.instruction(rt_h downto rt_l),
+        address_write => if_id.instruction(rd_h downto rd_l),
+        data_in   => , -- lo que viene de WB
+        operand_A => operand_A,
+        operand_B => operand_B,
+    )
+
     id_ex_update : process (clk)
     begin
         if rising_edge(clk) then
             id_ex.instruction <= if_id.instruction;
-            id_ex.operand_A <= ;
-            id_ex.operand_B <= ;
-            id_ex.immediate <= ;
-            id_ex.shift_amount <= ;
+            id_ex.operand_A <= operand_A;
+            id_ex.operand_B <= operand_B;
+            -- immediate sign extension
+            id_ex.immediate <=
+                std_logic_vector(resize(
+                    signed(if_id.instruction(imm_h downto imm_l)),
+                    word_width
+                ));
+            -- shift amount zero extension
+            id_ex.shift_amount <=
+                std_logic_vector(resize(
+                    unsigned(if_id.instruction(sa_h downto sa_l)),
+                    word_width
+                ));
+            -- control signals
             id_ex.reg_write <= ;
             id_ex.alu_op <= ;
             id_ex.operandB_src <= ;

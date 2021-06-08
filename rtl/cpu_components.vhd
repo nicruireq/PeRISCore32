@@ -13,19 +13,21 @@ package cpu_components is
     
     component direct_mapped_DCache is
         generic(
-            address_bits : integer := 32; 
-            index_width : integer := 8; 
-            block_size : integer := 32; 
-            byte_select : integer := 2 
+            address_bits : integer := 32; --! width in bits of input address
+            index_width : integer := 8; --! number of lines of cache index
+            block_size : integer := 32; --! size of cache block
+            byte_select : integer := 2 --! number of bits to select byte in each block
         );
         port (
             clk : in std_logic;
             write_enable : in std_logic;
+            read_enable : in std_logic;
             address : in word;
-            select_type : in operand_type;   
-            signed_unsigned : in std_logic; 
+            select_type : in operand_type;   --! Allows load/store of byte, halfword and word
+            signed_unsigned : in std_logic; --! Allows to select for signed or unsigned byte/half
             data_in : in word;
             data_out : out word
+            --hit_miss : out std_logic
         );
     end component ;
 
@@ -44,5 +46,38 @@ package cpu_components is
             data_out : out word
         );
     end component ;
+
+    component alu is
+        generic (
+            data_width : integer := 32;
+            alu_control_width : integer := 5
+        );
+        port (
+            operand_A : in std_logic_vector(data_width-1 downto 0);
+            operand_B : in std_logic_vector(data_width-1 downto 0);
+            control : in std_logic_vector(alu_control_width-1 downto 0);
+            computation_out : out std_logic_vector(data_width-1 downto 0);
+            zero_flag : out std_logic;
+            overflow_flag : out std_logic
+        ) ;
+    end component;
+
+    component register_file is
+        generic (
+            registers : integer := registers_amount;
+            register_width : integer := word_width;
+            address_width : integer := regfile_address_width
+        );
+        port (
+            clk : in std_logic;
+            reg_write : in std_logic;
+            address_A : in std_logic_vector(address_width-1 downto 0);
+            address_B : in std_logic_vector(address_width-1 downto 0);
+            address_write : in std_logic_vector(address_width-1 downto 0);
+            data_in   : in word;
+            operand_A : out word;
+            operand_B : out word
+        );
+    end component;
 
 end package ;
