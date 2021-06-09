@@ -56,8 +56,11 @@ architecture rtl of pipelined_datapath is
     signal branch_target_address : word;
     signal fetched_instruction : word;
     signal operand_A : word;
-    signla operand_B : word;
-
+    signal operand_B : word;
+    signal main_control_unit : control_unit_rom 
+            := load_memory_from_file("microcode/control_unit.dat");
+    signal main_control_signals : main_control_bus;
+    
 
 begin
 
@@ -66,7 +69,7 @@ begin
     --===================
 
     -- Select PC register source
-    with pc_src select
+    with main_control_signals(pc_src) select
         pc_input <= pc_plus4 when '0',
                     branch_target_address when others;
     
@@ -113,6 +116,36 @@ begin
         operand_B => operand_B,
     )
 
+    control_unit : process(if_id.instruction(opcode_h downto opcode_l))
+    begin
+        main_control_signals <= main_control_unit(
+            to_integer(unsigned(
+                if_id.instruction(opcode_h downto opcode_l)
+            )));
+    end process;
+
+    -- branch and jump logic
+    branch_unit : process(main_control_signals(jump))
+    begin
+        if main_control_signals(jump) then
+            branch_target_address <= 
+                if_id.pc(31 downto 28) &
+                (if_id.instruction(instr_index_h downto instr_index_l) sll 2);
+        else
+            if main_control_signals(branch) then
+                if operand_A = operand_B then
+                    branch_target_address <=
+                        -- immediato +- if_id.pc;
+                else
+                    branch_target_address <= if_id.pc;
+                end if;
+            else
+                branch_target_address <= if_id.pc;
+            end if;
+        end if;
+    end process;
+
+
     id_ex_update : process (clk)
     begin
         if rising_edge(clk) then
@@ -132,13 +165,13 @@ begin
                     word_width
                 ));
             -- control signals
-            id_ex.reg_write <= ;
-            id_ex.alu_op <= ;
-            id_ex.operandB_src <= ;
-            id_ex.sel_alu_control <= ;
-            id_ex.mem_read <= ;
-            id_ex.mem_write <= ;
-            id_ex.mem_to_reg <= ;
+            id_ex.reg_write <= main_control_signals(reg_write);
+            id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
+            id_ex.operandB_src <= main_control_signals(operandB_src);
+            id_ex.sel_alu_control <= main_control_signals(sel_alu_control);
+            id_ex.mem_read <= main_control_signals(mem_read);
+            id_ex.mem_write <= main_control_signals(mem_write);
+            id_ex.mem_to_reg <= main_control_signals(mem_to_reg);
         end if ;
     end process ; -- id_ex_update
 

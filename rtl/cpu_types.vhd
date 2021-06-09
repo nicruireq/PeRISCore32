@@ -184,4 +184,18 @@ package cpu_types is
     subtype special_control_bus 
         is std_logic_vector(alu_control_width downto 0);
 
+    -- Constants for place of control signal bits
+    -- in main_control_bus
+    constant pc_src : integer := 12;
+    constant reg_write : integer := 11;
+    constant branch : integer := 10;
+    constant jump : integer := 9;
+    constant alu_op_h : integer := 8;
+    constant alu_op_l : integer := 5;
+    constant operandB_src : integer := 4;
+    constant sel_alu_control : integer := 3;
+    constant mem_read : integer := 2;
+    constant mem_write : integer := 1;
+    constant mem_to_reg : integer := 0;
+
 end package ;
