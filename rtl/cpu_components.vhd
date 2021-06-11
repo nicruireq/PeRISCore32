@@ -8,6 +8,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 library periscore32;
+use periscore32.cpu_types.all;
 
 package cpu_components is
     
@@ -33,10 +34,10 @@ package cpu_components is
 
     component direct_mapped_ICache is
         generic(
-            address_bits : integer := 32; 
-            index_width : integer := 8; 
-            block_size : integer := 32; 
-            byte_select : integer := 2 
+            address_bits : integer := 32; --! width in bits of input address
+            index_width : integer := 8; --! number of lines of cache index
+            block_size : integer := 32; --! size of cache block
+            byte_select : integer := 2 --! number of bits to select byte in each block
         );
         port (
             clk : in std_logic;
@@ -57,7 +58,6 @@ package cpu_components is
             operand_B : in std_logic_vector(data_width-1 downto 0);
             control : in std_logic_vector(alu_control_width-1 downto 0);
             computation_out : out std_logic_vector(data_width-1 downto 0);
-            zero_flag : out std_logic;
             overflow_flag : out std_logic
         ) ;
     end component;

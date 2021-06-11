@@ -98,7 +98,7 @@ package cpu_types is
     --! less significant bit of shift amount field in instruction word (R-Type)
     constant sa_l : integer := 6;
     --! most significant bit of function field in instruction word (R-Type)
-    constant funct_h : integer := 6;
+    constant funct_h : integer := 5;
     --! less significant bit of function field in instruction word (R-Type)
     constant funct_l : integer := 0;
     
@@ -117,7 +117,7 @@ package cpu_types is
         operand_A : word;
         operand_B : word;
         -- sign extended immediate
-        immediate : halfword;
+        immediate : word;
         -- zero extended shift amount
         shift_amount : word;
         -- signals in id/ex register
@@ -137,13 +137,14 @@ package cpu_types is
     --! Instruction Execution to Memory stages
     type EX_MEM is record
         instruction : word;
-        mem_address : word;
+        --mem_address : word;
         alu_result : word;
         operand_B : word;   -- for store instruction
         -- signals in ex/mem register
         mem_read : control_signal;
         mem_write : control_signal;
         mem_to_reg : control_signal;
+        reg_write : control_signal;
     end record EX_MEM;
 
     --! Pipeline register of 
@@ -154,6 +155,7 @@ package cpu_types is
         alu_result : word;
         -- signals in ex/mem register
         mem_to_reg : control_signal;
+        reg_write : control_signal;
     end record MEM_WB;
 
     -------------------------------------------------------
@@ -197,5 +199,15 @@ package cpu_types is
     constant mem_read : integer := 2;
     constant mem_write : integer := 1;
     constant mem_to_reg : integer := 0;
+
+    -- Constants for place of control signal bits
+    -- in SPECIAL alu control unit
+    constant operandA_src : integer := 0;
+    -- lsb of control in output bus of special 
+    -- alu control unit
+    constant spcon_l : integer := 1;
+    -- msb of control in output bus of special 
+    -- alu control unit
+    constant spcon_h : integer := 5;
 
 end package ;

@@ -33,14 +33,14 @@ architecture behavioral of register_file is
     type ram_file is array(0 to registers-1) 
         of std_logic_vector(register_width-1 downto 0);
     --shared variable RAM : ram_file;
-    signal RAM : ram_file;
-
+    signal RAM : ram_file := (others=>(others=>'0'));
 begin
 
     writing : process( clk )
     begin
         if rising_edge(clk) then
-            if reg_write = '1' then
+            -- register $0 always yields 0
+            if reg_write = '1' and unsigned(address_write) /= 0 then
                 RAM(to_integer(unsigned(address_write))) <= data_in;
             --else
               --  operand_A <= RAM(to_integer(unsigned(address_A)));

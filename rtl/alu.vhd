@@ -15,7 +15,6 @@ entity alu is
         operand_B : in std_logic_vector(data_width-1 downto 0);
         control : in std_logic_vector(alu_control_width-1 downto 0);
         computation_out : out std_logic_vector(data_width-1 downto 0);
-        zero_flag : out std_logic;
         overflow_flag : out std_logic
     ) ;
 end alu;
@@ -112,7 +111,5 @@ begin
     end process ;
 
     computation_out <= intermediate_out(data_width-1 downto 0);
-
-    zero_flag <= '0'; -- is not used
 
 end behavioural ; -- behavioural
