@@ -158,6 +158,12 @@ package cpu_types is
         reg_write : control_signal;
     end record MEM_WB;
 
+    -- Procedures to clean pipeline registers
+    procedure clean_if_id(signal if_id_reg : out IF_ID);
+    procedure clean_id_ex(signal id_ex_reg : out ID_EX);
+    procedure clean_ex_mem(signal ex_mem_reg : out EX_MEM);
+    procedure clean_mem_wb(signal mem_wb_reg : out MEM_WB);
+
     -------------------------------------------------------
     --      CONTROL SIGNALS TYPES 
     -------------------------------------------------------
@@ -211,3 +217,50 @@ package cpu_types is
     constant spcon_h : integer := 5;
 
 end package ;
+
+package body cpu_types is
+
+    -- Procedures to clean pipeline registers
+    procedure clean_if_id(signal if_id_reg : out IF_ID) is
+    begin
+        if_id_reg.pc <= (others => '0');
+        if_id_reg.instruction <= (others => '0');
+    end procedure;
+
+    procedure clean_id_ex(signal id_ex_reg : out ID_EX) is
+    begin
+        id_ex_reg.instruction <= (others => '0');
+        id_ex_reg.operand_A <= (others => '0');
+        id_ex_reg.operand_B <= (others => '0');
+        id_ex_reg.immediate <= (others => '0');
+        id_ex_reg.shift_amount <= (others => '0');
+        id_ex_reg.reg_write <= '0';
+        id_ex_reg.alu_op <= (others => '0');
+        id_ex_reg.operandB_src <= '0';
+        id_ex_reg.sel_alu_control <= '0';
+        id_ex_reg.mem_read <= '0';
+        id_ex_reg.mem_write <= '0';
+        id_ex_reg.mem_to_reg <= '0';
+    end procedure;
+
+    procedure clean_ex_mem(signal ex_mem_reg : out EX_MEM) is
+    begin
+        ex_mem_reg.instruction <= (others => '0');
+        ex_mem_reg.alu_result <= (others => '0');
+        ex_mem_reg.operand_B <= (others => '0');
+        ex_mem_reg.mem_read <= '0';
+        ex_mem_reg.mem_write <= '0';
+        ex_mem_reg.mem_to_reg <= '0';
+        ex_mem_reg.reg_write <= '0';
+    end procedure;
+
+    procedure clean_mem_wb(signal mem_wb_reg : out MEM_WB) is
+    begin
+        mem_wb_reg.instruction <= (others => '0');
+        mem_wb_reg.mem_data <= (others => '0');
+        mem_wb_reg.alu_result <= (others => '0');
+        mem_wb_reg.mem_to_reg <= '0';
+        mem_wb_reg.reg_write <= '0';
+    end procedure;
+
+end package body;

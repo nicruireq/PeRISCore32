@@ -35,9 +35,12 @@ use periscore32.cpu_components.all;
 --! This version does not include hazard control
 --!
 entity pipelined_datapath is
+    generic (
+        icache_instructions : string := "./images/"
+    );
     port (
-        clk : std_logic
-        
+        clk : std_logic;
+        reset : std_logic
     ) ;
 end pipelined_datapath ;
 
@@ -94,6 +97,7 @@ begin
         unsigned(next_address_bytes) + unsigned(PC));
 
     instructions_cache : direct_mapped_ICache
+        generic map(data_image => icache_instructions)
         port map(
             clk => clk,
             write_enable => '0',
@@ -104,14 +108,18 @@ begin
 
     pc_update : process (clk)
     begin
-        if rising_edge(clk) then
+        if reset = '1' then
+            pc <= (others => '0');
+        elsif rising_edge(clk) then
             pc <= pc_input;
-        end if ;
+        end if;
     end process;
 
     if_id_update : process (clk)
     begin
-        if rising_edge(clk) then
+        if reset = '1' then
+            clean_if_id(if_id);
+        elsif rising_edge(clk) then
             if_id.pc <= pc_plus4;
             if_id.instruction <= fetched_instruction;
         end if;
@@ -175,7 +183,9 @@ begin
 
     id_ex_update : process (clk)
     begin
-        if rising_edge(clk) then
+        if reset = '1' then
+            clean_id_ex(id_ex);
+        elsif rising_edge(clk) then
             id_ex.instruction <= if_id.instruction;
             id_ex.operand_A <= operand_A;
             id_ex.operand_B <= operand_B;
@@ -240,7 +250,9 @@ begin
 
     ex_mem_update : process(clk)
     begin
-        if rising_edge(clk) then
+        if reset = '1' then
+            clean_ex_mem(ex_mem);
+        elsif rising_edge(clk) then
             ex_mem.instruction <= id_ex.instruction;
             ex_mem.alu_result <= alu_result;
             ex_mem.operand_B <= id_ex.operand_B;
@@ -270,7 +282,9 @@ begin
 
     mem_wb_update : process(clk)
     begin
-        if rising_edge(clk) then
+        if reset = '1' then
+            clean_mem_wb(mem_wb);
+        elsif rising_edge(clk) then
             mem_wb.instruction <= ex_mem.instruction;
             mem_wb.mem_data <= data_from_dcache;
             mem_wb.alu_result <= ex_mem.alu_result;

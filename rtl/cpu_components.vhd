@@ -17,7 +17,8 @@ package cpu_components is
             address_bits : integer := 32; --! width in bits of input address
             index_width : integer := 8; --! number of lines of cache index
             block_size : integer := 32; --! size of cache block
-            byte_select : integer := 2 --! number of bits to select byte in each block
+            byte_select : integer := 2; --! number of bits to select byte in each block
+            data_image : string := "./images/dcache_img1.dat" --! path to file with initial content
         );
         port (
             clk : in std_logic;
@@ -37,7 +38,8 @@ package cpu_components is
             address_bits : integer := 32; --! width in bits of input address
             index_width : integer := 8; --! number of lines of cache index
             block_size : integer := 32; --! size of cache block
-            byte_select : integer := 2 --! number of bits to select byte in each block
+            byte_select : integer := 2; --! number of bits to select byte in each block
+            data_image : string := "./images/icache_img1.dat" --! path to file with initial content
         );
         port (
             clk : in std_logic;
@@ -79,5 +81,15 @@ package cpu_components is
             operand_B : out word
         );
     end component;
+
+    component pipelined_datapath is
+        generic (
+            icache_instructions : string := "./images/"
+        );
+        port (
+            clk : std_logic;
+            reset : std_logic
+        ) ;
+    end component ;
 
 end package ;

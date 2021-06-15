@@ -7,6 +7,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--! Provides the types "string", "text" and "line"
+use STD.TEXTIO.ALL;
+--! Allows "std_logic" can be used as a type in the text file
+--! It is a not standard package and is deprecated.
+use IEEE.STD_LOGIC_TEXTIO.ALL;
+
 library periscore32;
 use periscore32.cpu_types.all;
 use periscore32.memory_utils.all;
@@ -16,7 +22,8 @@ entity direct_mapped_ICache is
         address_bits : integer := 32; --! width in bits of input address
         index_width : integer := 8; --! number of lines of cache index
         block_size : integer := 32; --! size of cache block
-        byte_select : integer := 2 --! number of bits to select byte in each block
+        byte_select : integer := 2; --! number of bits to select byte in each block
+        data_image : string := "./images/icache_img1.dat" --! path to file with initial content
     );
     port (
         clk : in std_logic;
@@ -44,9 +51,60 @@ architecture behavioral of direct_mapped_ICache is
     --! Type of RAM containing valid bit
     type validity_ram is array (0 to (2**index_width)-1)
         of std_logic;
-    signal data_blocks : data_ram; -- := load initial content
-    signal tags : tag_ram;
-    signal valids : validity_ram;
+    
+    --! Function to load ICache instructions content
+    impure function load_icache_data(file_name : in string)
+        return data_ram is
+            file fdata : text open read_mode is file_name;
+            variable mline : line;
+            variable temp_mem: data_ram;
+    begin
+        for i in data_ram'range loop
+            readline(fdata, mline);
+            read(mline, temp_mem(i));
+        end loop;
+
+        return temp_mem;
+    end function;
+
+    --! Function to load ICache tags
+    impure function load_icache_tags(file_name : in string)
+        return tag_ram is
+            file fdata : text open read_mode is file_name;
+            variable mline : line;
+            variable temp_mem: tag_ram;
+    begin
+        for i in tag_ram'range loop
+            readline(fdata, mline);
+            read(mline, temp_mem(i));
+        end loop;
+
+        return temp_mem;
+    end function;
+
+    --! Function to load ICache validity bits
+    impure function load_icache_valids(file_name : in string)
+        return validity_ram is
+            file fdata : text open read_mode is file_name;
+            variable mline : line;
+            variable temp_mem: validity_ram;
+    begin
+        for i in validity_ram'range loop
+            readline(fdata, mline);
+            read(mline, temp_mem(i));
+        end loop;
+
+        return temp_mem;
+    end function;
+
+
+    --! RAM of data blocks to hold instructions
+    signal data_blocks : data_ram := load_icache_data(data_image);
+    --! RAM of tags slice of address
+    signal tags : tag_ram := (others=>(others=>'0'));
+    --! RAM of validity bits
+    signal valids : validity_ram := (others=>('0'));
+
     --! To select byte select LSB bit in address
     constant bsl : integer := 0;
     --! To select byte select MSB bit in address
