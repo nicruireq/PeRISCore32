@@ -103,7 +103,7 @@ architecture behavioral of direct_mapped_ICache is
     --! RAM of tags slice of address
     signal tags : tag_ram := (others=>(others=>'0'));
     --! RAM of validity bits
-    signal valids : validity_ram := (others=>('0'));
+    signal valids : validity_ram := (others=>('1'));
 
     --! To select byte select LSB bit in address
     constant bsl : integer := 0;

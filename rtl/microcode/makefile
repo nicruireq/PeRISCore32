@@ -6,11 +6,11 @@
 GEN_TOOL = python3 gen_microcode.py
 # --lines and --begin parameters for each
 # image memory that it's being generated
-MAIN_CONTROL_L			= 13
+MAIN_CONTROL_L			= 6
 MAIN_CONTROL_B			= 1
 SPECIAL_CONTROL_L		= 6
 SPECIAL_CONTROL_B		= 2
-ALU_NOT_CLASS_CONTROL_L = 5
+ALU_NOT_CLASS_CONTROL_L = 4
 ALU_NOT_CLASS_CONTROL_B = 2
 
 ###########################

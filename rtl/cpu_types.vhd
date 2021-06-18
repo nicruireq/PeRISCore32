@@ -131,6 +131,7 @@ package cpu_types is
         mem_read : control_signal;
         mem_write : control_signal;
         mem_to_reg : control_signal;
+        dst_reg_rd_rt : control_signal;
     end record ID_EX;
 
     --! Pipeline register of 
@@ -145,6 +146,7 @@ package cpu_types is
         mem_write : control_signal;
         mem_to_reg : control_signal;
         reg_write : control_signal;
+        dst_reg_rd_rt : control_signal;
     end record EX_MEM;
 
     --! Pipeline register of 
@@ -156,6 +158,7 @@ package cpu_types is
         -- signals in ex/mem register
         mem_to_reg : control_signal;
         reg_write : control_signal;
+        dst_reg_rd_rt : control_signal;
     end record MEM_WB;
 
     -- Procedures to clean pipeline registers
@@ -173,7 +176,7 @@ package cpu_types is
     -- in vivado synthesis (vhdl-2008 features)
 
     --! Total sum of width in bits from main control signals
-    constant width_control_signals : integer := 13;
+    constant width_control_signals : integer := 14;
     --! Type representing the bus formed by the control 
     --! signals of the main control unit
     subtype main_control_bus 
@@ -194,17 +197,18 @@ package cpu_types is
 
     -- Constants for place of control signal bits
     -- in main_control_bus
-    constant pc_src : integer := 12;
-    constant reg_write : integer := 11;
-    constant branch : integer := 10;
-    constant jump : integer := 9;
-    constant alu_op_h : integer := 8;
-    constant alu_op_l : integer := 5;
-    constant operandB_src : integer := 4;
-    constant sel_alu_control : integer := 3;
-    constant mem_read : integer := 2;
-    constant mem_write : integer := 1;
-    constant mem_to_reg : integer := 0;
+    constant pc_src : integer := 13;
+    constant reg_write : integer := 12;
+    constant branch : integer := 11;
+    constant jump : integer := 10;
+    constant alu_op_h : integer := 9;
+    constant alu_op_l : integer := 6;
+    constant operandB_src : integer := 5;
+    constant sel_alu_control : integer := 4;
+    constant mem_read : integer := 3;
+    constant mem_write : integer := 2;
+    constant mem_to_reg : integer := 1;
+    constant dst_reg_rd_rt : integer := 0;
 
     -- Constants for place of control signal bits
     -- in SPECIAL alu control unit
@@ -241,6 +245,7 @@ package body cpu_types is
         id_ex_reg.mem_read <= '0';
         id_ex_reg.mem_write <= '0';
         id_ex_reg.mem_to_reg <= '0';
+        id_ex_reg.dst_reg_rd_rt <= '0';
     end procedure;
 
     procedure clean_ex_mem(signal ex_mem_reg : out EX_MEM) is
@@ -252,6 +257,7 @@ package body cpu_types is
         ex_mem_reg.mem_write <= '0';
         ex_mem_reg.mem_to_reg <= '0';
         ex_mem_reg.reg_write <= '0';
+        ex_mem_reg.dst_reg_rd_rt <= '0';
     end procedure;
 
     procedure clean_mem_wb(signal mem_wb_reg : out MEM_WB) is
@@ -261,6 +267,7 @@ package body cpu_types is
         mem_wb_reg.alu_result <= (others => '0');
         mem_wb_reg.mem_to_reg <= '0';
         mem_wb_reg.reg_write <= '0';
+        mem_wb_reg.dst_reg_rd_rt <= '0';
     end procedure;
 
 end package body;

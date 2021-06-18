@@ -24,7 +24,7 @@ ARCHITECTURE behavior OF pipelined_datapath_tb IS
 	-- Component Declaration for the Unit Under Test (UUT)
     component pipelined_datapath is
         generic (
-            icache_instructions : string := "./images/"
+            icache_instructions : string := "./images/e1.dat"
         );
         port (
             clk : std_logic;
@@ -42,20 +42,12 @@ BEGIN
 
     -- Instantiate the Unit Under Test (UUT)
 	-- UUT:
+	-- set "icache_instructions" for a different program execution
     my_pipelined_datapath : pipelined_datapath
-    generic map(icache_instructions => "./images/")
+    generic map(icache_instructions => "./images/e1.dat")
     port map(
         clk => clk,
         reset => reset );
-
-    clocking: process
-    begin
-        while not stop_the_clock loop
-            clk <= '0', '1' after clock_period / 2;
-            wait for clock_period;
-        end loop;
-        wait;
-    end process;
 
      -- Stimulus process
     stim_proc: process
@@ -65,10 +57,20 @@ BEGIN
         wait for 20 ns;
 	    -- Put test bench stimulus code here
         reset <= '0';
+        wait for 60 ns; 
+        reset <= '0';
 
-
-
+        stop_the_clock <= true;
         wait;
+    end process;
+
+    clocking: process
+    begin
+      while not stop_the_clock loop
+        clk <= '0', '1' after clock_period / 2;
+        wait for clock_period;
+      end loop;
+      wait;
     end process;
 
 END;

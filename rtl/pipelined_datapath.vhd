@@ -36,7 +36,7 @@ use periscore32.cpu_components.all;
 --!
 entity pipelined_datapath is
     generic (
-        icache_instructions : string := "./images/"
+        icache_instructions : string := "./images/e1.dat"
     );
     port (
         clk : std_logic;
@@ -78,6 +78,8 @@ architecture rtl of pipelined_datapath is
     -- signals mem stage
     signal data_from_dcache : word;
     -- signals wb stage
+    signal destination_register_address : 
+        std_logic_vector(regfile_address_width-1 downto 0);
     signal data_from_wb : word;
     
 
@@ -106,22 +108,26 @@ begin
             data_out => fetched_instruction
         ); 
 
-    pc_update : process (clk)
+    pc_update : process(clk)
     begin
-        if reset = '1' then
-            pc <= (others => '0');
-        elsif rising_edge(clk) then
-            pc <= pc_input;
+        if rising_edge(clk) then
+            if reset = '1' then
+                pc <= (others => '0');
+            else
+                pc <= pc_input;
+            end if;
         end if;
     end process;
 
-    if_id_update : process (clk)
+    if_id_update : process(clk)
     begin
-        if reset = '1' then
-            clean_if_id(if_id);
-        elsif rising_edge(clk) then
-            if_id.pc <= pc_plus4;
-            if_id.instruction <= fetched_instruction;
+        if rising_edge(clk) then
+            if reset = '1' then
+                clean_if_id(if_id);
+            else
+                if_id.pc <= pc_plus4;
+                if_id.instruction <= fetched_instruction;
+            end if;
         end if;
     end process;
 
@@ -135,7 +141,7 @@ begin
         reg_write => mem_wb.reg_write,
         address_A => if_id.instruction(rs_h downto rs_l),
         address_B => if_id.instruction(rt_h downto rt_l),
-        address_write => mem_wb.instruction(rd_h downto rd_l),
+        address_write => destination_register_address,
         data_in   => data_from_wb,
         operand_A => operand_A,
         operand_B => operand_B
@@ -181,29 +187,32 @@ begin
     end process;
 
 
-    id_ex_update : process (clk)
+    id_ex_update : process(clk)
     begin
-        if reset = '1' then
-            clean_id_ex(id_ex);
-        elsif rising_edge(clk) then
-            id_ex.instruction <= if_id.instruction;
-            id_ex.operand_A <= operand_A;
-            id_ex.operand_B <= operand_B;
-            id_ex.immediate <= immediate_sign_extended;
-            -- shift amount zero extension
-            id_ex.shift_amount <=
-                std_logic_vector(resize(
-                    unsigned(if_id.instruction(sa_h downto sa_l)),
-                    word_width
-                ));
-            -- control signals
-            id_ex.reg_write <= main_control_signals(reg_write);
-            id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
-            id_ex.operandB_src <= main_control_signals(operandB_src);
-            id_ex.sel_alu_control <= main_control_signals(sel_alu_control);
-            id_ex.mem_read <= main_control_signals(mem_read);
-            id_ex.mem_write <= main_control_signals(mem_write);
-            id_ex.mem_to_reg <= main_control_signals(mem_to_reg);
+        if rising_edge(clk) then
+            if reset = '1' then
+                clean_id_ex(id_ex);
+            else
+                id_ex.instruction <= if_id.instruction;
+                id_ex.operand_A <= operand_A;
+                id_ex.operand_B <= operand_B;
+                id_ex.immediate <= immediate_sign_extended;
+                -- shift amount zero extension
+                id_ex.shift_amount <=
+                    std_logic_vector(resize(
+                        unsigned(if_id.instruction(sa_h downto sa_l)),
+                        word_width
+                    ));
+                -- control signals
+                id_ex.reg_write <= main_control_signals(reg_write);
+                id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
+                id_ex.operandB_src <= main_control_signals(operandB_src);
+                id_ex.sel_alu_control <= main_control_signals(sel_alu_control);
+                id_ex.mem_read <= main_control_signals(mem_read);
+                id_ex.mem_write <= main_control_signals(mem_write);
+                id_ex.mem_to_reg <= main_control_signals(mem_to_reg);
+                id_ex.dst_reg_rd_rt <= main_control_signals(dst_reg_rd_rt);
+            end if;
         end if ;
     end process ; -- id_ex_update
 
@@ -250,17 +259,20 @@ begin
 
     ex_mem_update : process(clk)
     begin
-        if reset = '1' then
-            clean_ex_mem(ex_mem);
-        elsif rising_edge(clk) then
-            ex_mem.instruction <= id_ex.instruction;
-            ex_mem.alu_result <= alu_result;
-            ex_mem.operand_B <= id_ex.operand_B;
-            -- propagate control signals
-            ex_mem.mem_read <= id_ex.mem_read;
-            ex_mem.mem_write <= id_ex.mem_write;
-            ex_mem.mem_to_reg <= id_ex.mem_to_reg;
-            ex_mem.reg_write <= id_ex.reg_write;
+        if rising_edge(clk) then
+            if reset = '1' then
+                clean_ex_mem(ex_mem);
+            else
+                ex_mem.instruction <= id_ex.instruction;
+                ex_mem.alu_result <= alu_result;
+                ex_mem.operand_B <= id_ex.operand_B;
+                -- propagate control signals
+                ex_mem.mem_read <= id_ex.mem_read;
+                ex_mem.mem_write <= id_ex.mem_write;
+                ex_mem.mem_to_reg <= id_ex.mem_to_reg;
+                ex_mem.reg_write <= id_ex.reg_write;
+                ex_mem.dst_reg_rd_rt <= id_ex.dst_reg_rd_rt;
+            end if;
         end if;
     end process;
 
@@ -282,22 +294,32 @@ begin
 
     mem_wb_update : process(clk)
     begin
-        if reset = '1' then
-            clean_mem_wb(mem_wb);
-        elsif rising_edge(clk) then
-            mem_wb.instruction <= ex_mem.instruction;
-            mem_wb.mem_data <= data_from_dcache;
-            mem_wb.alu_result <= ex_mem.alu_result;
-            mem_wb.mem_to_reg <= ex_mem.mem_to_reg;
-            mem_wb.reg_write <= ex_mem.reg_write;
+        if rising_edge(clk) then
+            if reset = '1' then
+                clean_mem_wb(mem_wb);
+            else
+                mem_wb.instruction <= ex_mem.instruction;
+                mem_wb.mem_data <= data_from_dcache;
+                mem_wb.alu_result <= ex_mem.alu_result;
+                mem_wb.mem_to_reg <= ex_mem.mem_to_reg;
+                mem_wb.reg_write <= ex_mem.reg_write;
+                mem_wb.dst_reg_rd_rt <= ex_mem.dst_reg_rd_rt;
+            end if;
         end if;
     end process;
 
 
     --===================
-    -- MEM Stage logic
+    -- WB Stage logic
     --===================
 
+    -- pass rd for R instructions
+    -- pass rt for I instructions that write in register file
+    destination_register_address <= mem_wb.instruction(rt_h downto rt_l) when mem_wb.dst_reg_rd_rt = '1'
+                                    else mem_wb.instruction(rd_h downto rd_l);
+
+    -- pass mem data for lw
+    -- pass alu result for another 
     data_from_wb <= mem_wb.mem_data when mem_wb.mem_to_reg = '1'
                     else mem_wb.alu_result;
 
