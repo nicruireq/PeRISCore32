@@ -39,7 +39,8 @@ package cpu_components is
             index_width : integer := 8; --! number of lines of cache index
             block_size : integer := 32; --! size of cache block
             byte_select : integer := 2; --! number of bits to select byte in each block
-            data_image : string := "./images/icache_img1.dat" --! path to file with initial content
+            data_image : string := "./images/icache_img1.dat"; --! path to file with initial content
+            tags_image : string    --! path to file with tags content
         );
         port (
             clk : in std_logic;

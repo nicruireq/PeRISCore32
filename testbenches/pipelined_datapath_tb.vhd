@@ -25,6 +25,7 @@ ARCHITECTURE behavior OF pipelined_datapath_tb IS
     component pipelined_datapath is
         generic (
             icache_instructions : string := "./images/e1.dat";
+            icache_tags : string;
             dcache_data : string := "./images/e1_data.dat"
         );
         port (
@@ -53,6 +54,7 @@ BEGIN
     my_pipelined_datapath : pipelined_datapath
     generic map(
         icache_instructions => "./images/e1.dat",
+        icache_tags => "./images/e1_tags.dat",
         dcache_data => "./images/e1_data.dat"
     )
     port map(

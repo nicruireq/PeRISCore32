@@ -37,6 +37,7 @@ use periscore32.cpu_components.all;
 entity pipelined_datapath is
     generic (
         icache_instructions : string := "./images/e1.dat";
+        icache_tags : string := "./images/e1_tags.dat";
         dcache_data : string := "./images/e1_data.dat"
     );
     port (
@@ -58,8 +59,10 @@ architecture rtl of pipelined_datapath is
     signal mem_wb : MEM_WB;
 
     -- intermediate signals
+    -- if stage
     signal pc_input : word;
     signal pc_plus4 : word;
+    -- id stage
     signal branch_target_address : word;
     signal fetched_instruction : word;
     signal operand_A : word;
@@ -68,6 +71,7 @@ architecture rtl of pipelined_datapath is
             := load_memory_from_file("microcode/control_unit.dat");
     signal main_control_signals : main_control_bus;
     signal immediate_sign_extended : word;
+    signal immediate_zero_extended : word;
     -- signals ex stage
     signal alu_control_SPECIAL : special_control_rom
             := load_memory_from_file("microcode/alu_control_special.dat");
@@ -106,7 +110,10 @@ begin
         unsigned(next_address_bytes) + unsigned(PC));
 
     instructions_cache : direct_mapped_ICache
-        generic map(data_image => icache_instructions)
+        generic map(
+            data_image => icache_instructions,
+            tags_image => icache_tags
+        )
         port map(
             clk => clk,
             write_enable => '0',
@@ -119,7 +126,9 @@ begin
     begin
         if rising_edge(clk) then
             if reset = '1' then
-                pc <= (others => '0');
+                --pc <= (others => '0');
+                -- change base address .text segment to 0x00003000
+                pc <= x"00003000";
             elsif stop_start = '1' then
                 pc <= pc_input;
             end if;
@@ -168,6 +177,12 @@ begin
         word_width
     ));
 
+    -- immediate zero extension
+    immediate_zero_extended <= std_logic_vector(resize(
+        unsigned(if_id.instruction(imm_h downto imm_l)),
+        word_width
+    ));
+
     -- branch and jump logic
     branch_unit : process(main_control_signals(jump),
         if_id.pc(31 downto 28), 
@@ -203,7 +218,13 @@ begin
                 id_ex.instruction <= if_id.instruction;
                 id_ex.operand_A <= operand_A;
                 id_ex.operand_B <= operand_B;
-                id_ex.immediate <= immediate_sign_extended;
+                -- zero extended: andi, ori, xori
+                -- sign extended: addi, addiu, slti, sltiu
+                if main_control_signals(imm_zero_sign) = '1' then
+                    id_ex.immediate <= immediate_sign_extended;
+                else
+                    id_ex.immediate <= immediate_zero_extended;
+                end if;
                 -- shift amount zero extension
                 id_ex.shift_amount <=
                     std_logic_vector(resize(

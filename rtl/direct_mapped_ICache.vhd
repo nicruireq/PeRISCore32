@@ -23,7 +23,8 @@ entity direct_mapped_ICache is
         index_width : integer := 8; --! number of lines of cache index
         block_size : integer := 32; --! size of cache block
         byte_select : integer := 2; --! number of bits to select byte in each block
-        data_image : string := "./images/icache_img1.dat" --! path to file with initial content
+        data_image : string := "./images/icache_img1.dat"; --! path to file with initial content
+        tags_image : string := "./images/icache_img1_tags.dat"   --! path to file with tags content
     );
     port (
         clk : in std_logic;
@@ -101,7 +102,7 @@ architecture behavioral of direct_mapped_ICache is
     --! RAM of data blocks to hold instructions
     signal data_blocks : data_ram := load_icache_data(data_image);
     --! RAM of tags slice of address
-    signal tags : tag_ram := (others=>(others=>'0'));
+    signal tags : tag_ram := load_icache_tags(tags_image); --(others=>(others=>'0'));
     --! RAM of validity bits
     signal valids : validity_ram := (others=>('1'));
 

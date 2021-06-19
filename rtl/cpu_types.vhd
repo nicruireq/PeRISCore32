@@ -176,7 +176,7 @@ package cpu_types is
     -- in vivado synthesis (vhdl-2008 features)
 
     --! Total sum of width in bits from main control signals
-    constant width_control_signals : integer := 14;
+    constant width_control_signals : integer := 15;
     --! Type representing the bus formed by the control 
     --! signals of the main control unit
     subtype main_control_bus 
@@ -197,18 +197,19 @@ package cpu_types is
 
     -- Constants for place of control signal bits
     -- in main_control_bus
-    constant pc_src : integer := 13;
-    constant reg_write : integer := 12;
-    constant branch : integer := 11;
-    constant jump : integer := 10;
-    constant alu_op_h : integer := 9;
-    constant alu_op_l : integer := 6;
-    constant operandB_src : integer := 5;
-    constant sel_alu_control : integer := 4;
-    constant mem_read : integer := 3;
-    constant mem_write : integer := 2;
-    constant mem_to_reg : integer := 1;
-    constant dst_reg_rd_rt : integer := 0;
+    constant pc_src : integer := 14;
+    constant reg_write : integer := 13;
+    constant branch : integer := 12;
+    constant jump : integer := 11;
+    constant alu_op_h : integer := 10;
+    constant alu_op_l : integer := 7;
+    constant operandB_src : integer := 6;
+    constant sel_alu_control : integer := 5;
+    constant mem_read : integer := 4;
+    constant mem_write : integer := 3;
+    constant mem_to_reg : integer := 2;
+    constant dst_reg_rd_rt : integer := 1;
+    constant imm_zero_sign : integer := 0;
 
     -- Constants for place of control signal bits
     -- in SPECIAL alu control unit

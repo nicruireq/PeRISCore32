@@ -58,10 +58,10 @@ begin
     --end process ;
 
     -- reading "read-first"
-    operand_A <= data_in when address_write = address_A else
-                 RAM(to_integer(unsigned(address_A)));
+    operand_A <= data_in when address_write = address_A and reg_write = '1' 
+                    else RAM(to_integer(unsigned(address_A)));
 
-    operand_B <= data_in when address_write = address_B else
-                 RAM(to_integer(unsigned(address_B)));
+    operand_B <= data_in when address_write = address_B and reg_write = '1'
+                    else RAM(to_integer(unsigned(address_B)));
 
 end architecture ;
