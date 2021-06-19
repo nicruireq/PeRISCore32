@@ -132,20 +132,20 @@ begin
     end process;
 
     -- Synchronous reading
-    blocks_reading : process (clk)
-    begin
-        if rising_edge(clk) then
-            if (tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
-                and valids(to_integer(unsigned(address(ih downto il)))) = '1') then
-                    data_out <= data_blocks(to_integer(unsigned(address(ih downto il))));
-            end if;
-        end if;
-    end process;
+    --blocks_reading : process (clk)
+    --begin
+    --    if rising_edge(clk) then
+    --        if (tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+    --            and valids(to_integer(unsigned(address(ih downto il)))) = '1') then
+    --                data_out <= data_blocks(to_integer(unsigned(address(ih downto il))));
+    --        end if;
+    --    end if;
+    --end process;
 
     -- Asynchronous:
-    --data_out <= data_blocks(to_integer(unsigned(address(ih downto il)))) when 
-    --                tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
-    --                and valids(to_integer(unsigned(address(ih downto il)))) = '1'
-    --            else (others => '0');
+    data_out <= data_blocks(to_integer(unsigned(address(ih downto il)))) when 
+                    tags(to_integer(unsigned(address(ih downto il)))) = address(th downto tl)
+                    and valids(to_integer(unsigned(address(ih downto il)))) = '1'
+                else (others => '0');
 
 end architecture ; -- rtl

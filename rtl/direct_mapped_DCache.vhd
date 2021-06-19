@@ -23,7 +23,7 @@ entity direct_mapped_DCache is
         index_width : integer := 8; --! number of lines of cache index
         block_size : integer := 32; --! size of cache block
         byte_select : integer := 2; --! number of bits to select byte in each block
-        data_image : string := "./images/dcache_img1.dat" --! path to file with initial content
+        data_image : string := "./images/e1_data.dat" --! path to file with initial content
     );
     port (
         clk : in std_logic;
@@ -99,11 +99,11 @@ architecture behavioral of direct_mapped_DCache is
     end function;
 
     --! RAM of data blocks to hold mem data
-    signal data_blocks : data_ram := (others=>(others=>'0'));
+    signal data_blocks : data_ram := load_dcache_data(data_image); --(others=>(others=>'0'));
     --! RAM of tags slice of address
     signal tags : tag_ram := (others=>(others=>'0'));
     --! RAM of validity bits
-    signal valids : validity_ram := (others=>('0'));
+    signal valids : validity_ram := (others=>('1'));
 
     --! To select byte select LSB bit in address
     constant bsl : integer := 0;

@@ -24,16 +24,23 @@ ARCHITECTURE behavior OF pipelined_datapath_tb IS
 	-- Component Declaration for the Unit Under Test (UUT)
     component pipelined_datapath is
         generic (
-            icache_instructions : string := "./images/e1.dat"
+            icache_instructions : string := "./images/e1.dat";
+            dcache_data : string := "./images/e1_data.dat"
         );
         port (
-            clk : std_logic;
-            reset : std_logic
+            clk : in std_logic;
+            reset : in std_logic;
+            stop_start : in std_logic;
+            dcache_address : in word;
+            dcache_out : out word
         ) ;
     end component ;
 
     signal clk : std_logic;
     signal reset : std_logic;
+    signal stop_start : std_logic;
+    signal dcache_address : word;
+    signal dcache_out : word;
 
     constant clock_period: time := 10 ns;
     signal stop_the_clock: boolean;
@@ -44,21 +51,43 @@ BEGIN
 	-- UUT:
 	-- set "icache_instructions" for a different program execution
     my_pipelined_datapath : pipelined_datapath
-    generic map(icache_instructions => "./images/e1.dat")
+    generic map(
+        icache_instructions => "./images/e1.dat",
+        dcache_data => "./images/e1_data.dat"
+    )
     port map(
         clk => clk,
-        reset => reset );
+        reset => reset,
+        stop_start => stop_start,
+        dcache_address => dcache_address,
+        dcache_out => dcache_out
+    );
 
      -- Stimulus process
     stim_proc: process
+        variable expected_results : word_array := load_memory_image("./images/e1_result.dat");
     begin
         -- Put initialisation code here
         reset <= '1';
         wait for 20 ns;
 	    -- Put test bench stimulus code here
         reset <= '0';
-        wait for 60 ns; 
+        stop_start <= '1';
+        -- wait cycles for all instructions in test program
+        wait for 800 ns; 
         reset <= '0';
+        -- force to stop all memory elements to update
+        stop_start <= '0';
+
+        -- assert dcache memory with correct program results
+        for i in word_array'range loop
+            dcache_address <= std_logic_vector(to_unsigned(i, word'length));
+            assert_comb_eq(
+                dcache_out, expected_results(i), 
+                "Address " & integer'image(i) & " do not match", --& " yields: " & std_logic_vector'image(dcache_out) & " but expected: " & std_logic_vector'image(expected_results(i)),
+                10 ns
+            );
+        end loop;
 
         stop_the_clock <= true;
         wait;

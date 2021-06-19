@@ -36,11 +36,15 @@ use periscore32.cpu_components.all;
 --!
 entity pipelined_datapath is
     generic (
-        icache_instructions : string := "./images/e1.dat"
+        icache_instructions : string := "./images/e1.dat";
+        dcache_data : string := "./images/e1_data.dat"
     );
     port (
-        clk : std_logic;
-        reset : std_logic
+        clk : in std_logic;
+        reset : in std_logic;
+        stop_start : in std_logic;
+        dcache_address : in word;
+        dcache_out : out word
     ) ;
 end pipelined_datapath ;
 
@@ -82,6 +86,9 @@ architecture rtl of pipelined_datapath is
         std_logic_vector(regfile_address_width-1 downto 0);
     signal data_from_wb : word;
     
+    -- DEBUG SIGNALS
+    signal dbg_dcache_read_enable : std_logic;
+    signal dbg_dcache_address : word;
 
 begin
 
@@ -113,7 +120,7 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 pc <= (others => '0');
-            else
+            elsif stop_start = '1' then
                 pc <= pc_input;
             end if;
         end if;
@@ -124,7 +131,7 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 clean_if_id(if_id);
-            else
+            elsif stop_start = '1' then
                 if_id.pc <= pc_plus4;
                 if_id.instruction <= fetched_instruction;
             end if;
@@ -192,7 +199,7 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 clean_id_ex(id_ex);
-            else
+            elsif stop_start = '1' then
                 id_ex.instruction <= if_id.instruction;
                 id_ex.operand_A <= operand_A;
                 id_ex.operand_B <= operand_B;
@@ -242,7 +249,9 @@ begin
                             else alu_SPECIAL_signals(spcon_h downto spcon_l);
 
     -- ALU operand A input selection
-    alu_input_A <= id_ex.shift_amount when alu_SPECIAL_signals(operandA_src) = '1'
+    alu_input_A <= id_ex.shift_amount when -- shiftamount passed only when id_ex instruction is R-Type
+                        alu_SPECIAL_signals(operandA_src) = '1'
+                            and id_ex.sel_alu_control = '0'
                     else id_ex.operand_A;
 
     -- ALU operand B input selection
@@ -262,7 +271,7 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 clean_ex_mem(ex_mem);
-            else
+            elsif stop_start = '1'then
                 ex_mem.instruction <= id_ex.instruction;
                 ex_mem.alu_result <= alu_result;
                 ex_mem.operand_B <= id_ex.operand_B;
@@ -281,23 +290,36 @@ begin
     -- MEM Stage logic
     --===================
 
-    data_cache : direct_mapped_DCache port map(
-        clk => clk,
-        write_enable => ex_mem.mem_write,
-        read_enable => ex_mem.mem_read,
-        address => ex_mem.alu_result,
-        select_type => OP_WORD,
-        signed_unsigned => '0', -- don't care with words
-        data_in  => ex_mem.operand_B,
-        data_out  => data_from_dcache
-    );
+    -- DEBUG
+    dbg_dcache_read_enable <= ex_mem.mem_read when stop_start = '1'
+                                else '1';
+    dbg_dcache_address <= ex_mem.alu_result when stop_start = '1'
+                            else dcache_address;
+    -------------------------------
+
+    data_cache : direct_mapped_DCache 
+        generic map(data_image => dcache_data)
+        port map(
+            clk => clk,
+            write_enable => ex_mem.mem_write,
+            read_enable => dbg_dcache_read_enable, --ex_mem.mem_read,
+            address => dbg_dcache_address, --ex_mem.alu_result,
+            select_type => OP_WORD,
+            signed_unsigned => '0', -- don't care with words
+            data_in  => ex_mem.operand_B,
+            data_out  => data_from_dcache
+        );
+
+    -- DEBUG
+    dcache_out <= data_from_dcache;
+    -------------------------------
 
     mem_wb_update : process(clk)
     begin
         if rising_edge(clk) then
             if reset = '1' then
                 clean_mem_wb(mem_wb);
-            else
+            elsif stop_start = '1' then
                 mem_wb.instruction <= ex_mem.instruction;
                 mem_wb.mem_data <= data_from_dcache;
                 mem_wb.alu_result <= ex_mem.alu_result;

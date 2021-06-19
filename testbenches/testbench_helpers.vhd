@@ -6,6 +6,12 @@ USE ieee.math_real.all;
 library periscore32;
 use periscore32.cpu_types.word;
 
+--! Provides the types "string", "text" and "line"
+use STD.TEXTIO.ALL;
+--! Allows "std_logic" can be used as a type in the text file
+--! It is a not standard package and is deprecated.
+use IEEE.STD_LOGIC_TEXTIO.ALL;
+
 package testbench_helpers is
     
     procedure assert_comb_eq(
@@ -28,6 +34,11 @@ package testbench_helpers is
     -- rand_slv function
     shared variable seed1 : positive := 546545; -- FAIL: --positive'value(time'image(now) / 1 ns); --time'image(now) / 1 ns * 1000;
     shared variable seed2 : positive := 125;
+
+    type word_array is array (0 to 255) of word;
+
+    impure function load_memory_image(file_name : in string)
+        return word_array;
 
 end package ;
 
@@ -72,5 +83,21 @@ package body testbench_helpers is
         end loop;
         return slv;
     end function;
+
+
+    impure function load_memory_image(file_name : in string)
+        return word_array is
+            file fdata : text open read_mode is file_name;
+            variable mline : line;
+            variable temp_mem: word_array;
+    begin
+        for i in word_array'range loop
+            readline(fdata, mline);
+            read(mline, temp_mem(i));
+        end loop;
+
+        return temp_mem;
+    end function;
+
 
 end package body;
