@@ -16,17 +16,17 @@ library periscore32;
 use periscore32.cpu_types.all;
 use periscore32.testbench_helpers.all;
 
-ENTITY pipelined_datapath_tb IS
-END pipelined_datapath_tb;
+ENTITY pipelined_datapath_e2_tb IS
+END pipelined_datapath_e2_tb;
 
-ARCHITECTURE behavior OF pipelined_datapath_tb IS 
+ARCHITECTURE behavior OF pipelined_datapath_e2_tb IS 
 
 	-- Component Declaration for the Unit Under Test (UUT)
     component pipelined_datapath is
         generic (
-            icache_instructions : string := "./images/e1.dat";
+            icache_instructions : string;
             icache_tags : string;
-            dcache_data : string := "./images/e1_data.dat"
+            dcache_data : string
         );
         port (
             clk : in std_logic;
@@ -53,9 +53,9 @@ BEGIN
 	-- set "icache_instructions" for a different program execution
     my_pipelined_datapath : pipelined_datapath
     generic map(
-        icache_instructions => "./images/e1.dat",
+        icache_instructions => "./images/e2.dat",
         icache_tags => "./images/e1_tags.dat",
-        dcache_data => "./images/e1_data.dat"
+        dcache_data => "./images/e2_data.dat"
     )
     port map(
         clk => clk,
@@ -67,7 +67,7 @@ BEGIN
 
      -- Stimulus process
     stim_proc: process
-        variable expected_results : word_array := load_memory_image("./images/e1_result.dat");
+        variable expected_results : word_array := load_memory_image("./images/e2_result.dat");
     begin
         -- Put initialisation code here
         reset <= '1';
@@ -76,7 +76,7 @@ BEGIN
         reset <= '0';
         stop_start <= '1';
         -- wait cycles for all instructions in test program
-        wait for 800 ns; 
+        wait for 1300 ns; 
         reset <= '0';
         -- force to stop all memory elements to update
         stop_start <= '0';

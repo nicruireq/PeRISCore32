@@ -101,6 +101,10 @@ package cpu_types is
     constant funct_h : integer := 5;
     --! less significant bit of function field in instruction word (R-Type)
     constant funct_l : integer := 0;
+    --! sign extended immediate shifted 2 bits left MSB (for branches)
+    constant imm_shift_h : integer := 29;
+    --! sign extended immediate shifted 2 bits left LSB (for branches)
+    constant imm_shitf_l : integer := 0;
     
 
     --! Pipeline register of 

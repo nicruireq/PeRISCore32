@@ -72,6 +72,7 @@ architecture rtl of pipelined_datapath is
     signal main_control_signals : main_control_bus;
     signal immediate_sign_extended : word;
     signal immediate_zero_extended : word;
+    signal branch_offset : signed(word_width-1 downto 0);
     -- signals ex stage
     signal alu_control_SPECIAL : special_control_rom
             := load_memory_from_file("microcode/alu_control_special.dat");
@@ -183,6 +184,9 @@ begin
         word_width
     ));
 
+    --branch_offset <= signed(immediate_sign_extended) sll 2; --immediate_sign_extended(imm_shift_h downto imm_shitf_l) & "00";
+    branch_offset <= resize(signed(if_id.instruction(imm_h downto imm_l)) sll 2, word_width);
+
     -- branch and jump logic
     branch_unit : process(main_control_signals(jump),
         if_id.pc(31 downto 28), 
@@ -197,8 +201,7 @@ begin
             if main_control_signals(branch) = '1' then
                 if operand_A = operand_B then
                     branch_target_address <=
-                        std_logic_vector(unsigned(if_id.pc) 
-                            + unsigned(immediate_sign_extended));
+                        std_logic_vector(unsigned(if_id.pc) + unsigned(branch_offset));
                 else
                     branch_target_address <= if_id.pc;
                 end if;
