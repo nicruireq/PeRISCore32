@@ -1,0 +1,13 @@
+class,pnemonic,alu_op,ALUControl
+j,j (don't care),1111,00000
+beq,beq (don't care),1111,00000
+addi,addi,0000,00000
+addiu,addiu,0001,00001
+slti,slti,0010,00100
+sltiu,sltiu,0011,00101
+andi,andi,0100,00110
+ori,ori,0101,01001
+xori,xori,0110,01010
+lui,lui,0111,00111
+lw,lw,0001,00001
+sw,sw,0001,00001
