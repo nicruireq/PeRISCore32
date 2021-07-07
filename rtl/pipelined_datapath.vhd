@@ -81,9 +81,17 @@ architecture rtl of pipelined_datapath is
     signal alu_not_class_signals : alu_control_bus;
     signal alu_SPECIAL_signals : special_control_bus;
     signal alu_control_signals : alu_control_bus;
+    --! current input A at EX stage (not forwarded input)
+    signal alu_current_A : word;
+    --! current input B at EX stage (not forwarded input)
+    signal alu_current_B : word;
+    --! final input A to ALU in EX
     signal alu_input_A : word;
+    --! final input B to ALU in EX
     signal alu_input_B : word;
     signal alu_result : word;
+    -- output control signals from  ex forwarding unit
+    signal forward_A, forward_B : ex_forward;
     -- signals mem stage
     signal data_from_dcache : word;
     -- signals wb stage
@@ -189,6 +197,8 @@ begin
 
     -- branch and jump logic
     branch_unit : process(main_control_signals(jump),
+        main_control_signals(branch),
+        branch_offset,
         if_id.pc(31 downto 28), 
         if_id.instruction(instr_index_h downto instr_index_l),
         operand_A, operand_B, if_id.pc, immediate_sign_extended)
@@ -273,14 +283,35 @@ begin
                             else alu_SPECIAL_signals(spcon_h downto spcon_l);
 
     -- ALU operand A input selection
-    alu_input_A <= id_ex.shift_amount when -- shiftamount passed only when id_ex instruction is R-Type
+    alu_current_A <= id_ex.shift_amount when -- shiftamount passed only when id_ex instruction is R-Type
                         alu_SPECIAL_signals(operandA_src) = '1'
                             and id_ex.sel_alu_control = '0'
                     else id_ex.operand_A;
 
     -- ALU operand B input selection
-    alu_input_B <= id_ex.immediate when id_ex.operandB_src = '1'
+    alu_current_B <= id_ex.immediate when id_ex.operandB_src = '1'
                     else id_ex.operand_B;
+
+    -- EX statge forwarding logic
+    alu_input_A <= ex_mem.alu_result when forward_A = "01" else
+                    mem_wb.alu_result when forward_A = "10" else
+                    alu_current_A;
+
+    alu_input_B <= ex_mem.alu_result when forward_B = "01" else
+                    mem_wb.alu_result when forward_B = "10" else
+                    alu_current_B;
+
+    forward_unit_ex : ex_forward_unit port map(
+        ex_mem_reg_write => ex_mem.reg_write,
+        ex_mem_rd => ex_mem.instruction(rd_h downto rd_l),
+        mem_wb_reg_write => mem_wb.reg_write,
+        mem_wb_rd => mem_wb.instruction(rd_h downto rd_l),
+        id_ex_rs => id_ex.instruction(rs_h downto rs_l),
+        id_ex_rt => id_ex.instruction(rt_h downto rt_l),
+        forward_A => forward_A,
+        forward_B => forward_B
+    );
+        
 
     ex_alu : alu port map(
         operand_A => alu_input_A,

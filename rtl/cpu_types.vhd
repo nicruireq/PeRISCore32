@@ -41,8 +41,11 @@ package cpu_types is
     subtype halfword is std_logic_vector(half_width-1 downto 0);
     subtype control_signal is std_logic;
     subtype alu_control is std_logic_vector(3 downto 0) ;
+    subtype register_index is std_logic_vector(regfile_address_width-1 downto 0);
 
     constant next_address_bytes : word := x"00000004";
+    --! constant for index of register zero
+    constant zero : register_index := "00000";
 
     --! type representing ALU's control words
     subtype alu_opcode is std_logic_vector(alu_control_width-1 downto 0);
@@ -224,6 +227,12 @@ package cpu_types is
     -- msb of control in output bus of special 
     -- alu control unit
     constant spcon_h : integer := 5;
+
+    -------------------------------------------------------
+    --      FORWARDING AND HAZARD TYPES
+    -------------------------------------------------------
+
+    subtype ex_forward is std_logic_vector(1 downto 0);
 
 end package ;
 
