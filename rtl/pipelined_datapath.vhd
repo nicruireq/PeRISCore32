@@ -81,10 +81,10 @@ architecture rtl of pipelined_datapath is
     signal alu_not_class_signals : alu_control_bus;
     signal alu_SPECIAL_signals : special_control_bus;
     signal alu_control_signals : alu_control_bus;
-    --! current input A at EX stage (not forwarded input)
-    signal alu_current_A : word;
-    --! current input B at EX stage (not forwarded input)
-    signal alu_current_B : word;
+    --! current input A at EX stage or forwarded input
+    signal opA_or_forwarded : word;
+    --! current input B at EX stage or forwarded input
+    signal opB_or_forwarded : word;
     --! final input A to ALU in EX
     signal alu_input_A : word;
     --! final input B to ALU in EX
@@ -92,8 +92,13 @@ architecture rtl of pipelined_datapath is
     signal alu_result : word;
     -- output control signals from  ex forwarding unit
     signal forward_A, forward_B : ex_forward;
+    -- To determine if rd in ex forward unit is rd or rt
+    signal ex_mem_is_rd_or_rt, mem_wb_is_rd_or_rt : register_index;
     -- signals mem stage
     signal data_from_dcache : word;
+    -- output control signals from  mem forwarding unit
+    signal forward_mem : mem_forward;
+    signal data_to_mem : word;
     -- signals wb stage
     signal destination_register_address : 
         std_logic_vector(regfile_address_width-1 downto 0);
@@ -283,35 +288,47 @@ begin
                             else alu_SPECIAL_signals(spcon_h downto spcon_l);
 
     -- ALU operand A input selection
-    alu_current_A <= id_ex.shift_amount when -- shiftamount passed only when id_ex instruction is R-Type
+    alu_input_A <= id_ex.shift_amount when -- shiftamount passed only when id_ex instruction is R-Type
                         alu_SPECIAL_signals(operandA_src) = '1'
                             and id_ex.sel_alu_control = '0'
-                    else id_ex.operand_A;
+                    else opA_or_forwarded;
 
     -- ALU operand B input selection
-    alu_current_B <= id_ex.immediate when id_ex.operandB_src = '1'
-                    else id_ex.operand_B;
+    alu_input_B <= id_ex.immediate when id_ex.operandB_src = '1'
+                    else opB_or_forwarded;
 
-    -- EX statge forwarding logic
-    alu_input_A <= ex_mem.alu_result when forward_A = "01" else
-                    mem_wb.alu_result when forward_A = "10" else
-                    alu_current_A;
+    -- EX stage forwarding logic
 
-    alu_input_B <= ex_mem.alu_result when forward_B = "01" else
-                    mem_wb.alu_result when forward_B = "10" else
-                    alu_current_B;
+    -- mux to select between forwarded results or operand_A from ID/EX
+    opA_or_forwarded <= ex_mem.alu_result when forward_A = "01" else
+                        mem_wb.alu_result when forward_A = "10" else
+                        id_ex.operand_A;
+
+    -- mux to select between forwarded results or operand_B from ID/EX
+    opB_or_forwarded <= ex_mem.alu_result when forward_B = "01" else
+                        mem_wb.alu_result when forward_B = "10" else
+                        id_ex.operand_B;
+
+    -- If instruction in MEM or WB stage is I-Type register writable
+    -- pass rt field of ex_mem and/or mem_wb to ex forward unit rd inputs
+    ex_mem_is_rd_or_rt <= ex_mem.instruction(rt_h downto rt_l) when
+                            ex_mem.is_IType = '1' else
+                                ex_mem.instruction(rd_h downto rd_l);
+    
+    mem_wb_is_rd_or_rt <= mem_wb.instruction(rt_h downto rt_l) when
+                            mem_wb.is_IType = '1' else
+                                mem_wb.instruction(rd_h downto rd_l);
 
     forward_unit_ex : ex_forward_unit port map(
         ex_mem_reg_write => ex_mem.reg_write,
-        ex_mem_rd => ex_mem.instruction(rd_h downto rd_l),
+        ex_mem_rd => ex_mem_is_rd_or_rt,
         mem_wb_reg_write => mem_wb.reg_write,
-        mem_wb_rd => mem_wb.instruction(rd_h downto rd_l),
+        mem_wb_rd => mem_wb_is_rd_or_rt,
         id_ex_rs => id_ex.instruction(rs_h downto rs_l),
         id_ex_rt => id_ex.instruction(rt_h downto rt_l),
         forward_A => forward_A,
         forward_B => forward_B
     );
-        
 
     ex_alu : alu port map(
         operand_A => alu_input_A,
@@ -331,6 +348,7 @@ begin
                 ex_mem.alu_result <= alu_result;
                 ex_mem.operand_B <= id_ex.operand_B;
                 -- propagate control signals
+                ex_mem.is_IType <= id_ex.operandB_src;
                 ex_mem.mem_read <= id_ex.mem_read;
                 ex_mem.mem_write <= id_ex.mem_write;
                 ex_mem.mem_to_reg <= id_ex.mem_to_reg;
@@ -352,6 +370,18 @@ begin
                             else dcache_address;
     -------------------------------
 
+    -- MEM forward logic
+    data_to_mem <= mem_wb.alu_result when forward_mem = '1' else
+                    ex_mem.operand_B;
+
+    forward_unit_mem : mem_forward_unit port map(
+        ex_mem_write => ex_mem.mem_write,
+        ex_mem_rt => ex_mem.instruction(rt_h downto rt_l),
+        mem_wb_rd => mem_wb.instruction(rd_h downto rd_l),
+        mem_wb_reg_write => mem_wb.reg_write,
+        forward_mem => forward_mem
+    );
+
     data_cache : direct_mapped_DCache 
         generic map(data_image => dcache_data)
         port map(
@@ -361,7 +391,7 @@ begin
             address => dbg_dcache_address, --ex_mem.alu_result,
             select_type => OP_WORD,
             signed_unsigned => '0', -- don't care with words
-            data_in  => ex_mem.operand_B,
+            data_in  => data_to_mem,
             data_out  => data_from_dcache
         );
 
@@ -378,6 +408,7 @@ begin
                 mem_wb.instruction <= ex_mem.instruction;
                 mem_wb.mem_data <= data_from_dcache;
                 mem_wb.alu_result <= ex_mem.alu_result;
+                mem_wb.is_IType <= ex_mem.is_IType;
                 mem_wb.mem_to_reg <= ex_mem.mem_to_reg;
                 mem_wb.reg_write <= ex_mem.reg_write;
                 mem_wb.dst_reg_rd_rt <= ex_mem.dst_reg_rd_rt;

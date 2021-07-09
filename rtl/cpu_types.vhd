@@ -149,6 +149,7 @@ package cpu_types is
         alu_result : word;
         operand_B : word;   -- for store instruction
         -- signals in ex/mem register
+        is_IType : control_signal;  -- to determine if instruction is I-Type
         mem_read : control_signal;
         mem_write : control_signal;
         mem_to_reg : control_signal;
@@ -163,6 +164,7 @@ package cpu_types is
         mem_data : word;
         alu_result : word;
         -- signals in ex/mem register
+        is_IType : control_signal;  -- to determine if instruction is I-Type
         mem_to_reg : control_signal;
         reg_write : control_signal;
         dst_reg_rd_rt : control_signal;
@@ -233,6 +235,7 @@ package cpu_types is
     -------------------------------------------------------
 
     subtype ex_forward is std_logic_vector(1 downto 0);
+    subtype mem_forward is std_logic;
 
 end package ;
 
@@ -267,6 +270,7 @@ package body cpu_types is
         ex_mem_reg.instruction <= (others => '0');
         ex_mem_reg.alu_result <= (others => '0');
         ex_mem_reg.operand_B <= (others => '0');
+        ex_mem_reg.is_IType <= '0';
         ex_mem_reg.mem_read <= '0';
         ex_mem_reg.mem_write <= '0';
         ex_mem_reg.mem_to_reg <= '0';
@@ -279,6 +283,7 @@ package body cpu_types is
         mem_wb_reg.instruction <= (others => '0');
         mem_wb_reg.mem_data <= (others => '0');
         mem_wb_reg.alu_result <= (others => '0');
+        mem_wb_reg.is_IType <= '0';
         mem_wb_reg.mem_to_reg <= '0';
         mem_wb_reg.reg_write <= '0';
         mem_wb_reg.dst_reg_rd_rt <= '0';

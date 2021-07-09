@@ -96,6 +96,16 @@ package cpu_components is
         );
     end component;
 
+    component mem_forward_unit is
+        port (
+            ex_mem_write : in control_signal;
+            ex_mem_rt : in register_index;
+            mem_wb_rd : in register_index;
+            mem_wb_reg_write : in control_signal;
+            forward_mem : out mem_forward
+        );
+    end component;
+
     component pipelined_datapath is
         generic (
             icache_instructions : string := "./images/"
