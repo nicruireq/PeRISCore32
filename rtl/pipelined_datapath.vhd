@@ -371,14 +371,17 @@ begin
     -------------------------------
 
     -- MEM forward logic
-    data_to_mem <= mem_wb.alu_result when forward_mem = '1' else
+    data_to_mem <= mem_wb.alu_result when forward_mem = "01" else
+                    mem_wb.mem_data when forward_mem = "10" else
                     ex_mem.operand_B;
 
     forward_unit_mem : mem_forward_unit port map(
         ex_mem_write => ex_mem.mem_write,
         ex_mem_rt => ex_mem.instruction(rt_h downto rt_l),
         mem_wb_rd => mem_wb.instruction(rd_h downto rd_l),
+        mem_wb_rt => mem_wb.instruction(rt_h downto rt_l),
         mem_wb_reg_write => mem_wb.reg_write,
+        mem_wb_mem_read => mem_wb.mem_read,
         forward_mem => forward_mem
     );
 
@@ -409,6 +412,7 @@ begin
                 mem_wb.mem_data <= data_from_dcache;
                 mem_wb.alu_result <= ex_mem.alu_result;
                 mem_wb.is_IType <= ex_mem.is_IType;
+                mem_wb.mem_read <= ex_mem.mem_read;
                 mem_wb.mem_to_reg <= ex_mem.mem_to_reg;
                 mem_wb.reg_write <= ex_mem.reg_write;
                 mem_wb.dst_reg_rd_rt <= ex_mem.dst_reg_rd_rt;

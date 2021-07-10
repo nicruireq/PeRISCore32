@@ -165,6 +165,7 @@ package cpu_types is
         alu_result : word;
         -- signals in ex/mem register
         is_IType : control_signal;  -- to determine if instruction is I-Type
+        mem_read : control_signal;  -- keep to mem forward logic
         mem_to_reg : control_signal;
         reg_write : control_signal;
         dst_reg_rd_rt : control_signal;
@@ -234,8 +235,12 @@ package cpu_types is
     --      FORWARDING AND HAZARD TYPES
     -------------------------------------------------------
 
+    --! Type of output control signals from ex forward unit
+    --! that control forwarding MUXs in EX stage
     subtype ex_forward is std_logic_vector(1 downto 0);
-    subtype mem_forward is std_logic;
+    --! Type of output control signals from mem forward unit
+    --! that control forwarding MUXs in MEM stage
+    subtype mem_forward is std_logic_vector(1 downto 0);
 
 end package ;
 
@@ -284,6 +289,7 @@ package body cpu_types is
         mem_wb_reg.mem_data <= (others => '0');
         mem_wb_reg.alu_result <= (others => '0');
         mem_wb_reg.is_IType <= '0';
+        mem_wb_reg.mem_read <= '0';
         mem_wb_reg.mem_to_reg <= '0';
         mem_wb_reg.reg_write <= '0';
         mem_wb_reg.dst_reg_rd_rt <= '0';
