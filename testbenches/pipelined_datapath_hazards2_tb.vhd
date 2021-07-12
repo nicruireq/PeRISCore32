@@ -76,7 +76,7 @@ BEGIN
         reset <= '0';
         stop_start <= '1';
         -- wait cycles for all instructions in test program
-        wait for 200 ns; 
+        wait for 300 ns; 
         reset <= '0';
         -- force to stop all memory elements to update
         stop_start <= '0';

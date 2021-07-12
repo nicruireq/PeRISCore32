@@ -63,6 +63,12 @@ architecture rtl of pipelined_datapath is
     signal pc_input : word;
     signal pc_plus4 : word;
     -- id stage
+    --! controls PC register writing for hazards
+    signal stall : control_signal;
+    --! controls IF/ID writing for hazards
+    signal pc_write : control_signal;
+    --! controls if NOP is needed in ID/EX for stalling
+    signal if_id_write : control_signal;
     signal branch_target_address : word;
     signal fetched_instruction : word;
     signal operand_A : word;
@@ -143,7 +149,9 @@ begin
                 --pc <= (others => '0');
                 -- change base address .text segment to 0x00003000
                 pc <= x"00003000";
-            elsif stop_start = '1' then
+            -- stop_start is only for debug
+            elsif (stop_start = '1') and
+                    (pc_write = '1') then
                 pc <= pc_input;
             end if;
         end if;
@@ -154,7 +162,8 @@ begin
         if rising_edge(clk) then
             if reset = '1' then
                 clean_if_id(if_id);
-            elsif stop_start = '1' then
+            elsif (stop_start = '1') and
+                    (if_id_write = '1') then
                 if_id.pc <= pc_plus4;
                 if_id.instruction <= fetched_instruction;
             end if;
@@ -165,6 +174,16 @@ begin
     --===================
     -- ID Stage logic
     --===================
+
+    hazard_detection_in_id : id_hazard_detection_unit port map(
+        id_ex_mem_read => id_ex.mem_read,
+        id_ex_rt => id_ex.instruction(rt_h downto rt_l),
+        if_id_rs => if_id.instruction(rs_h downto rs_l),
+        if_id_rt => if_id.instruction(rt_h downto rt_l),
+        stall => stall,
+        pc_write => pc_write,
+        if_id_write => if_id_write
+    );
 
     id_register_file : register_file port map(
         clk => clk,
@@ -233,31 +252,36 @@ begin
             if reset = '1' then
                 clean_id_ex(id_ex);
             elsif stop_start = '1' then
-                id_ex.instruction <= if_id.instruction;
-                id_ex.operand_A <= operand_A;
-                id_ex.operand_B <= operand_B;
-                -- zero extended: andi, ori, xori
-                -- sign extended: addi, addiu, slti, sltiu
-                if main_control_signals(imm_zero_sign) = '1' then
-                    id_ex.immediate <= immediate_sign_extended;
+                if stall = '1' then
+                    -- insert NOP
+                    clean_id_ex(id_ex);
                 else
-                    id_ex.immediate <= immediate_zero_extended;
+                    id_ex.instruction <= if_id.instruction;
+                    id_ex.operand_A <= operand_A;
+                    id_ex.operand_B <= operand_B;
+                    -- zero extended: andi, ori, xori
+                    -- sign extended: addi, addiu, slti, sltiu
+                    if main_control_signals(imm_zero_sign) = '1' then
+                        id_ex.immediate <= immediate_sign_extended;
+                    else
+                        id_ex.immediate <= immediate_zero_extended;
+                    end if;
+                    -- shift amount zero extension
+                    id_ex.shift_amount <=
+                        std_logic_vector(resize(
+                            unsigned(if_id.instruction(sa_h downto sa_l)),
+                            word_width
+                        ));
+                    -- control signals
+                    id_ex.reg_write <= main_control_signals(reg_write);
+                    id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
+                    id_ex.operandB_src <= main_control_signals(operandB_src);
+                    id_ex.sel_alu_control <= main_control_signals(sel_alu_control);
+                    id_ex.mem_read <= main_control_signals(mem_read);
+                    id_ex.mem_write <= main_control_signals(mem_write);
+                    id_ex.mem_to_reg <= main_control_signals(mem_to_reg);
+                    id_ex.dst_reg_rd_rt <= main_control_signals(dst_reg_rd_rt);
                 end if;
-                -- shift amount zero extension
-                id_ex.shift_amount <=
-                    std_logic_vector(resize(
-                        unsigned(if_id.instruction(sa_h downto sa_l)),
-                        word_width
-                    ));
-                -- control signals
-                id_ex.reg_write <= main_control_signals(reg_write);
-                id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
-                id_ex.operandB_src <= main_control_signals(operandB_src);
-                id_ex.sel_alu_control <= main_control_signals(sel_alu_control);
-                id_ex.mem_read <= main_control_signals(mem_read);
-                id_ex.mem_write <= main_control_signals(mem_write);
-                id_ex.mem_to_reg <= main_control_signals(mem_to_reg);
-                id_ex.dst_reg_rd_rt <= main_control_signals(dst_reg_rd_rt);
             end if;
         end if ;
     end process ; -- id_ex_update

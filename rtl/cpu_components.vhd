@@ -108,6 +108,18 @@ package cpu_components is
         );
     end component;
 
+    component id_hazard_detection_unit is
+        port (
+            id_ex_mem_read : in control_signal;
+            id_ex_rt : in register_index;
+            if_id_rs : in register_index;
+            if_id_rt : in register_index;
+            stall : out control_signal;
+            pc_write : out control_signal;
+            if_id_write : out control_signal
+        );
+    end component;
+
     component pipelined_datapath is
         generic (
             icache_instructions : string := "./images/"
