@@ -326,11 +326,13 @@ begin
     -- mux to select between forwarded results or operand_A from ID/EX
     opA_or_forwarded <= ex_mem.alu_result when forward_A = "01" else
                         mem_wb.alu_result when forward_A = "10" else
+                        mem_wb.mem_data when forward_A = "11" else
                         id_ex.operand_A;
 
     -- mux to select between forwarded results or operand_B from ID/EX
     opB_or_forwarded <= ex_mem.alu_result when forward_B = "01" else
                         mem_wb.alu_result when forward_B = "10" else
+                        mem_wb.mem_data when forward_B = "11" else
                         id_ex.operand_B;
 
     -- If instruction in MEM or WB stage is I-Type register writable
@@ -347,7 +349,9 @@ begin
         ex_mem_reg_write => ex_mem.reg_write,
         ex_mem_rd => ex_mem_is_rd_or_rt,
         mem_wb_reg_write => mem_wb.reg_write,
+        mem_wb_mem_read => mem_wb.mem_read,
         mem_wb_rd => mem_wb_is_rd_or_rt,
+        mem_wb_rt => mem_wb.instruction(rt_h downto rt_l),
         id_ex_rs => id_ex.instruction(rs_h downto rs_l),
         id_ex_rt => id_ex.instruction(rt_h downto rt_l),
         forward_A => forward_A,
