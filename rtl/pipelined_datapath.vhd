@@ -180,6 +180,7 @@ begin
         id_ex_rt => id_ex.instruction(rt_h downto rt_l),
         if_id_rs => if_id.instruction(rs_h downto rs_l),
         if_id_rt => if_id.instruction(rt_h downto rt_l),
+        id_mem_write => main_control_signals(mem_write),
         stall => stall,
         pc_write => pc_write,
         if_id_write => if_id_write

@@ -15,6 +15,7 @@ entity id_hazard_detection_unit is
         id_ex_rt : in register_index;
         if_id_rs : in register_index;
         if_id_rt : in register_index;
+        id_mem_write : in control_signal; --! to detect a sw being decoded in ID stage
         stall : out control_signal;
         pc_write : out control_signal;
         if_id_write : out control_signal
@@ -25,9 +26,11 @@ architecture behavioral of id_hazard_detection_unit is
     
 begin
     
-    proc_name: process(id_ex_mem_read, id_ex_rt, if_id_rs, if_id_rt)
+    proc_name: process(id_ex_mem_read, id_ex_rt, if_id_rs, if_id_rt, 
+                        id_mem_write)
     begin
         if (id_ex_mem_read = '1') and
+            (id_mem_write = '0') and
             ((id_ex_rt = if_id_rs) or (id_ex_rt = if_id_rt))
         then
             stall <= '1';

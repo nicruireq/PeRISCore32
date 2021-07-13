@@ -116,6 +116,7 @@ package cpu_components is
             id_ex_rt : in register_index;
             if_id_rs : in register_index;
             if_id_rt : in register_index;
+            id_mem_write : in control_signal;
             stall : out control_signal;
             pc_write : out control_signal;
             if_id_write : out control_signal
