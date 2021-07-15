@@ -113,10 +113,14 @@ package cpu_components is
     component id_hazard_detection_unit is
         port (
             id_ex_mem_read : in control_signal;
+            id_ex_reg_write : in control_signal;
+            id_ex_operandB_src : in control_signal;
+            id_ex_rd : in register_index;
             id_ex_rt : in register_index;
             if_id_rs : in register_index;
             if_id_rt : in register_index;
-            id_mem_write : in control_signal;
+            id_mem_write : in control_signal; --! to detect a sw being decoded in ID stage
+            id_branch : in control_signal;  --! to detect a beq being decoded in ID stage
             stall : out control_signal;
             pc_write : out control_signal;
             if_id_write : out control_signal

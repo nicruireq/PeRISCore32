@@ -1,9 +1,9 @@
 # Discard vivado project directory
 workspace
 .Xil
-.jou
-.log
-.str
+*.jou
+*.log
+*.str
 
 *.ods
 

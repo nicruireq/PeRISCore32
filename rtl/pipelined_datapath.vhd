@@ -177,10 +177,14 @@ begin
 
     hazard_detection_in_id : id_hazard_detection_unit port map(
         id_ex_mem_read => id_ex.mem_read,
+        id_ex_reg_write => id_ex.reg_write,
+        id_ex_operandB_src => id_ex.operandB_src,
+        id_ex_rd => id_ex.instruction(rd_h downto rd_l),
         id_ex_rt => id_ex.instruction(rt_h downto rt_l),
         if_id_rs => if_id.instruction(rs_h downto rs_l),
         if_id_rt => if_id.instruction(rt_h downto rt_l),
         id_mem_write => main_control_signals(mem_write),
+        id_branch => main_control_signals(branch),
         stall => stall,
         pc_write => pc_write,
         if_id_write => if_id_write
