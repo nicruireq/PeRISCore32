@@ -176,6 +176,8 @@ begin
     --===================
 
     hazard_detection_in_id : id_hazard_detection_unit port map(
+        ex_mem_mem_read => ex_mem.mem_read,
+        ex_mem_rt => ex_mem.instruction(rt_h downto rt_l),
         id_ex_mem_read => id_ex.mem_read,
         id_ex_reg_write => id_ex.reg_write,
         id_ex_operandB_src => id_ex.operandB_src,
@@ -242,10 +244,10 @@ begin
                     branch_target_address <=
                         std_logic_vector(unsigned(if_id.pc) + unsigned(branch_offset));
                 else
-                    branch_target_address <= if_id.pc;
+                    branch_target_address <= pc_plus4; --if_id.pc;
                 end if;
             else
-                branch_target_address <= if_id.pc;
+                branch_target_address <= pc_plus4; --if_id.pc;
             end if;
         end if;
     end process;

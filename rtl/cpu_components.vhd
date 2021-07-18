@@ -112,6 +112,8 @@ package cpu_components is
 
     component id_hazard_detection_unit is
         port (
+            ex_mem_mem_read : in control_signal;
+            ex_mem_rt : in register_index;
             id_ex_mem_read : in control_signal;
             id_ex_reg_write : in control_signal;
             id_ex_operandB_src : in control_signal;

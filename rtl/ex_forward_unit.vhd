@@ -30,7 +30,7 @@ begin
     
     forward_operand_A: process(ex_mem_reg_write,
         mem_wb_reg_write, mem_wb_mem_read, mem_wb_rd, 
-        ex_mem_rd, id_ex_rs, id_ex_rt)
+        mem_wb_rt, ex_mem_rd, id_ex_rs, id_ex_rt)
     begin
         -- First evaluate hazard between EX and MEM
         if (ex_mem_reg_write = '1') and 

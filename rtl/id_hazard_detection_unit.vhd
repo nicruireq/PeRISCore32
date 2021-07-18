@@ -11,6 +11,8 @@ use periscore32.cpu_types.all;
 
 entity id_hazard_detection_unit is
     port (
+        ex_mem_mem_read : in control_signal;
+        ex_mem_rt : in register_index;
         id_ex_mem_read : in control_signal;
         id_ex_reg_write : in control_signal;
         id_ex_operandB_src : in control_signal;
@@ -30,14 +32,23 @@ architecture behavioral of id_hazard_detection_unit is
     
 begin
     
-    analyze_hazards: process(id_ex_mem_read, id_ex_reg_write, 
+    analyze_hazards: process(ex_mem_mem_read, ex_mem_rt,
+        id_ex_mem_read, id_ex_reg_write, 
         id_ex_operandB_src, id_ex_rd, id_ex_rt,
         if_id_rs, if_id_rt, id_mem_write, id_branch)
     begin
-        -- load use hazard
-        if (id_ex_mem_read = '1') and
-            (id_mem_write = '0') and    -- instruction in ID stage is not a SW
-            ((id_ex_rt = if_id_rs) or (id_ex_rt = if_id_rt))
+        -- LW-x-BEQ, when lw is in ex/mem register
+        if (ex_mem_mem_read = '1') and
+            (id_branch = '1') and
+            ((ex_mem_rt = if_id_rs) or (ex_mem_rt = if_id_rt))
+        then
+            stall <= '1';
+            pc_write <= '0';
+            if_id_write <= '0';
+        -- load use hazard and lw-beq
+        elsif (id_ex_mem_read = '1') and
+                (id_mem_write = '0') and    -- instruction in ID stage is not a SW
+                ((id_ex_rt = if_id_rs) or (id_ex_rt = if_id_rt))
         then
             stall <= '1';
             pc_write <= '0'; 
