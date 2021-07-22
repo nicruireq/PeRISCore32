@@ -79,6 +79,10 @@ architecture rtl of pipelined_datapath is
     signal immediate_sign_extended : word;
     signal immediate_zero_extended : word;
     signal branch_offset : signed(word_width-1 downto 0);
+    -- inputs operands to branch control unit
+    signal branch_operand_A, branch_operand_B : word;
+    -- output control signals from  ID forwarding unit
+    signal forward_branch_A, forward_branch_B : id_forward;
     -- signals ex stage
     signal alu_control_SPECIAL : special_control_rom
             := load_memory_from_file("microcode/alu_control_special.dat");
@@ -223,16 +227,43 @@ begin
         word_width
     ));
 
+    forward_unit_in_id : id_forward_unit port map(
+        ex_mem_reg_write => ex_mem.reg_write,
+        ex_mem_is_IType => ex_mem.is_IType,
+        ex_mem_rd => ex_mem.instruction(rd_h downto rd_l),
+        ex_mem_rt => ex_mem.instruction(rt_h downto rt_l),
+        mem_wb_reg_write => mem_wb.reg_write,
+        mem_wb_mem_read => mem_wb.mem_read,
+        mem_wb_is_IType => mem_wb.is_IType,
+        mem_wb_rd => mem_wb.instruction(rd_h downto rd_l),
+        mem_wb_rt => mem_wb.instruction(rt_h downto rt_l),
+        if_id_rs => if_id.instruction(rs_h downto rs_l),
+        if_id_rt => if_id.instruction(rt_h downto rt_l),
+        forward_A => forward_branch_A,
+        forward_B => forward_branch_B
+    );
+
+    -- Forwarding MUX logic for branch unit
+    branch_operand_A <= ex_mem.alu_result when forward_branch_A = "01" else
+                        mem_wb.mem_data when forward_branch_A = "10" else
+                        mem_wb.alu_result when forward_branch_A = "11" else
+                        operand_A;
+    
+    branch_operand_B <= ex_mem.alu_result when forward_branch_B = "01" else
+                        mem_wb.mem_data when forward_branch_B = "10" else
+                        mem_wb.alu_result when forward_branch_B = "11" else
+                        operand_B;
+
     --branch_offset <= signed(immediate_sign_extended) sll 2; --immediate_sign_extended(imm_shift_h downto imm_shitf_l) & "00";
     branch_offset <= resize(signed(if_id.instruction(imm_h downto imm_l)) sll 2, word_width);
 
     -- branch and jump logic
     branch_unit : process(main_control_signals(jump),
         main_control_signals(branch),
-        branch_offset,
+        branch_offset, pc_plus4,
         if_id.pc(31 downto 28), 
         if_id.instruction(instr_index_h downto instr_index_l),
-        operand_A, operand_B, if_id.pc, immediate_sign_extended)
+        branch_operand_A, branch_operand_B, if_id.pc, immediate_sign_extended)
     begin
         if main_control_signals(jump) = '1' then
             branch_target_address <= 
@@ -240,7 +271,7 @@ begin
                 if_id.instruction(instr_index_h downto instr_index_l) & "00";
         else
             if main_control_signals(branch) = '1' then
-                if operand_A = operand_B then
+                if branch_operand_A = branch_operand_B then
                     branch_target_address <=
                         std_logic_vector(unsigned(if_id.pc) + unsigned(branch_offset));
                 else

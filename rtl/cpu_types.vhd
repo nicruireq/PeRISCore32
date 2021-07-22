@@ -235,6 +235,9 @@ package cpu_types is
     --      FORWARDING AND HAZARD TYPES
     -------------------------------------------------------
 
+    --! Type of output control signals from id forward unit
+    --! that control forwarding MUXs in ID stage
+    subtype id_forward is std_logic_vector(1 downto 0);
     --! Type of output control signals from ex forward unit
     --! that control forwarding MUXs in EX stage
     subtype ex_forward is std_logic_vector(1 downto 0);
