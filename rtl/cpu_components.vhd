@@ -106,6 +106,7 @@ package cpu_components is
             mem_wb_rt : in register_index;
             mem_wb_reg_write : in control_signal;
             mem_wb_mem_read : in control_signal;
+            mem_wb_is_IType : in control_signal;
             forward_mem : out mem_forward
         );
     end component;

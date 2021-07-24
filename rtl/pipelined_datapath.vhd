@@ -448,6 +448,7 @@ begin
         mem_wb_rt => mem_wb.instruction(rt_h downto rt_l),
         mem_wb_reg_write => mem_wb.reg_write,
         mem_wb_mem_read => mem_wb.mem_read,
+        mem_wb_is_IType => mem_wb.is_IType,
         forward_mem => forward_mem
     );
 
