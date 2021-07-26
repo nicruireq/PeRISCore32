@@ -356,6 +356,7 @@ begin
                     else opA_or_forwarded;
 
     -- ALU operand B input selection
+    -- if id_ex has a store instruction must be bypassed the forwarded operand for B(rt)
     alu_input_B <= id_ex.immediate when id_ex.operandB_src = '1'
                     else opB_or_forwarded;
 
@@ -412,7 +413,8 @@ begin
             elsif stop_start = '1'then
                 ex_mem.instruction <= id_ex.instruction;
                 ex_mem.alu_result <= alu_result;
-                ex_mem.operand_B <= id_ex.operand_B;
+                --ex_mem.operand_B <= id_ex.operand_B; -- ERROR
+                ex_mem.operand_B <= opB_or_forwarded;
                 -- propagate control signals
                 ex_mem.is_IType <= id_ex.operandB_src;
                 ex_mem.mem_read <= id_ex.mem_read;
