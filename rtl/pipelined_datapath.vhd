@@ -1,6 +1,27 @@
 -------------------------------------------------------
---! @file
---! @brief Integer unit pipelined data path
+--! @file   pipelined_datapath.vhd
+--! @brief  Integer unit pipelined data path
+--! @author Nicolas Ruiz Requejo
+--! @details    Pipelined data path able to execute
+--! a subset of mips32r2 instructions.
+--! Consists of classic 5 stage pipeline:
+--! 1. Instruction fetch (IF)
+--! 2. Instruction decode (ID)
+--! 3. Execution (EX)
+--! 4. Memory access (MEM)
+--! 5. Results write back (WB)
+--! Instruction subset supported:
+--! - Arithmetic, logical, shift and rotate:
+--!   + add, addi, addiu, addu, sub, subu
+--!   + slt, slti, sltiu, sltu
+--!   + and, andi, nor, or, ori, xor, xori, lui
+--!   + sll, sllv, sra, srav, srl, srlv
+--! - Memory:
+--!   + lw, sw
+--! - Branch and jump:
+--!   + beq, j
+--! This version includes hazard detection and management
+--! 
 -------------------------------------------------------
 
 library ieee;
@@ -12,57 +33,36 @@ use periscore32.cpu_types.all;
 use periscore32.memory_utils.all;
 use periscore32.cpu_components.all;
 
---! Pipelined data path able to execute
---! a subset of mips32r2 instructions.
---! Consists of classic 5 stage pipeline:
---! 1. Instruction fetch (IF)
---! 2. Instruction decode (ID)
---! 3. Execution (EX)
---! 4. Memory access (MEM)
---! 5. Results write back (WB)
---! Instruction subset supported:
---! - Arithmetic, logical, shift and rotate:
---!   + add, addi, addiu, addu, sub, subu
---!   + clo, clz
---!   + seb, seh 
---!   + slt, slti, sltiu, sltu
---!   + and, andi, nor, or, ori, xor, xori, lui
---!   + rotr, rotrv, sll, sllv, sra, srav, srl, srlv
---! - Memory:
---!   + lw, sw
---! - Branch and jump:
---!   + beq, j
---! This version does not include hazard control
---!
+
 entity pipelined_datapath is
     generic (
-        icache_instructions : string := "./images/e1.dat";
-        icache_tags : string := "./images/e1_tags.dat";
-        dcache_data : string := "./images/e1_data.dat"
+        icache_instructions : string := "./images/e1.dat";  --! file with instructions to load in instruction cache (text file of binary lines)
+        icache_tags : string := "./images/e1_tags.dat"; --! file with address tag slice for instruction cache (text file of binary lines)
+        dcache_data : string := "./images/e1_data.dat" --! file with initial data to load in data cache (text file of binary lines)
     );
     port (
         clk : in std_logic;
         reset : in std_logic;
-        stop_start : in std_logic;
-        dcache_address : in word;
-        dcache_out : out word
+        stop_start : in std_logic;  --! when '0' the pipeline is frozen, when '1' the pipeline is running
+        dcache_address : in word;   --! when pipeline is in stop mode use this port to read a data cache line
+        dcache_out : out word   --! shows data at current selected data cache address
     ) ;
 end pipelined_datapath ;
 
 architecture rtl of pipelined_datapath is
 
-    -- segmentation registers
+    -- SEGMENTATION REGISTERS
     signal pc : word;
     signal if_id : IF_ID;
     signal id_ex : ID_EX;
     signal ex_mem : EX_MEM;
     signal mem_wb : MEM_WB;
 
-    -- intermediate signals
-    -- if stage
+    -- INTERMEDIATE SIGNALS
+    -- IF STAGE
     signal pc_input : word;
     signal pc_plus4 : word;
-    -- id stage
+    -- ID STAGE
     --! controls PC register writing for hazards
     signal stall : control_signal;
     --! controls IF/ID writing for hazards
@@ -73,23 +73,32 @@ architecture rtl of pipelined_datapath is
     signal fetched_instruction : word;
     signal operand_A : word;
     signal operand_B : word;
+    --! ROM memory containing the microcode of the main control unit
     signal main_control_unit : control_unit_rom 
             := load_memory_from_file("microcode/control_unit.dat");
+    --! Output control signals from main control unit in ID stage
     signal main_control_signals : main_control_bus;
     signal immediate_sign_extended : word;
     signal immediate_zero_extended : word;
     signal branch_offset : signed(word_width-1 downto 0);
-    -- inputs operands to branch control unit
+    --! inputs operands to branch control unit, may be forwarded or not
     signal branch_operand_A, branch_operand_B : word;
-    -- output control signals from  ID forwarding unit
+    --! output control signals from  ID forwarding unit
     signal forward_branch_A, forward_branch_B : id_forward;
-    -- signals ex stage
+    -- SIGNALS EX STAGE
+    --! ROM memory containing the microcode of the ALU control unit for SPECIAL 
+    --! opcode class instructions
     signal alu_control_SPECIAL : special_control_rom
             := load_memory_from_file("microcode/alu_control_special.dat");
+    --! ROM memory containing the microcode of the ALU control unit for 
+    --! non-class opcode instructions
     signal alu_control_not_class : alu_control_rom
             := load_memory_from_file("microcode/alu_control_not_class.dat");
+    --! Output control signals from ALU not class control unit
     signal alu_not_class_signals : alu_control_bus;
+    --! Output control signals from ALU SPECIAL control unit
     signal alu_SPECIAL_signals : special_control_bus;
+    --! Selected control signals from ALU SPECIAL or ALU not class
     signal alu_control_signals : alu_control_bus;
     --! current input A at EX stage or forwarded input
     signal opA_or_forwarded : word;
@@ -108,8 +117,9 @@ architecture rtl of pipelined_datapath is
     signal data_from_dcache : word;
     -- output control signals from  mem forwarding unit
     signal forward_mem : mem_forward;
+    -- data to be written in data cache
     signal data_to_mem : word;
-    -- signals wb stage
+    -- SIGNALS WB STAGE
     signal destination_register_address : 
         std_logic_vector(regfile_address_width-1 downto 0);
     signal data_from_wb : word;
@@ -254,7 +264,8 @@ begin
                         mem_wb.alu_result when forward_branch_B = "11" else
                         operand_B;
 
-    --branch_offset <= signed(immediate_sign_extended) sll 2; --immediate_sign_extended(imm_shift_h downto imm_shitf_l) & "00";
+    --branch_offset <= signed(immediate_sign_extended) sll 2; --immediate_sign_extended(imm_shift_h downto imm_shitf_l) & "00"; -- not work
+    -- align and extend immediate as branch offset to be added with pc
     branch_offset <= resize(signed(if_id.instruction(imm_h downto imm_l)) sll 2, word_width);
 
     -- branch and jump logic
@@ -310,7 +321,7 @@ begin
                             unsigned(if_id.instruction(sa_h downto sa_l)),
                             word_width
                         ));
-                    -- control signals
+                    -- control signals assignment
                     id_ex.reg_write <= main_control_signals(reg_write);
                     id_ex.alu_op <= main_control_signals(alu_op_h downto alu_op_l);
                     id_ex.operandB_src <= main_control_signals(operandB_src);
@@ -329,6 +340,7 @@ begin
     -- EX Stage logic
     --===================
 
+    -- Distributed control unit for not class opcodes
     not_class_instructions : process(id_ex.alu_op)
     begin
         alu_not_class_signals <= alu_control_not_class(
@@ -337,6 +349,7 @@ begin
             )));
     end process;
 
+    -- Distributed control unit for SPECIAL class opcodes
     SPECIAL_instructions : process(id_ex.instruction(funct_h downto funct_l))
     begin
         alu_SPECIAL_signals <= alu_control_SPECIAL(

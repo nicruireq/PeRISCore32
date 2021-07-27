@@ -1,7 +1,17 @@
--------------------------------------------------------
---! @file
+-----------------------------------------------------------------
+--! @file register_file.vhd
 --! @brief register file of cpu
--------------------------------------------------------
+--! @author Nicolas Ruiz Requejo
+--! @details This register file implementation 
+--!          is able to perform two readings 
+--!          and one writting at the same cycle.
+--!          - Address zero is fixed to constant 0x00000000.
+--!          - Therefore writtings to register zero are ignored.
+--!          - A forwarding scheme is included to forward the 
+--!            value being writting when is reading the same
+--!            address at once.
+--!          - Synthesizable as distributed ram only
+-----------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -18,13 +28,13 @@ entity register_file is
     );
     port (
         clk : in std_logic;
-        reg_write : in std_logic;
-        address_A : in std_logic_vector(address_width-1 downto 0);
-        address_B : in std_logic_vector(address_width-1 downto 0);
-        address_write : in std_logic_vector(address_width-1 downto 0);
-        data_in   : in word;
-        operand_A : out word;
-        operand_B : out word
+        reg_write : in std_logic;   --! control signal to perform writings
+        address_A : in std_logic_vector(address_width-1 downto 0);  --! selects first operand to read
+        address_B : in std_logic_vector(address_width-1 downto 0);  --! selects second operand to read
+        address_write : in std_logic_vector(address_width-1 downto 0);  --! selects register to be written
+        data_in   : in word;    --! data to be written
+        operand_A : out word;   --! first reading operand
+        operand_B : out word    --! second reading operand
     );
 end register_file;
 

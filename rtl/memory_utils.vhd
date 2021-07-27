@@ -2,6 +2,7 @@
 --! @file   memory_utils.vhd
 --! @brief procedures and functions utilities for
 --!        PeRISCore32
+--! @author Nicolas Ruiz Requejo
 -------------------------------------------------------
 
 library ieee;
@@ -13,7 +14,7 @@ use STD.TEXTIO.ALL;
 --! It is a not standard package and is deprecated.
 use IEEE.STD_LOGIC_TEXTIO.ALL;
 
---! Allow to use types provide for periscore32 development
+--! Allow to use types provided for periscore32 development
 library periscore32;
 use periscore32.cpu_types.all;
 
