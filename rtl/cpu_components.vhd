@@ -150,11 +150,16 @@ package cpu_components is
 
     component pipelined_datapath is
         generic (
-            icache_instructions : string := "./images/"
+            icache_instructions : string := "./images/e1.dat";
+            icache_tags : string := "./images/e1_tags.dat";
+            dcache_data : string := "./images/e1_data.dat"
         );
         port (
-            clk : std_logic;
-            reset : std_logic
+            clk : in std_logic;
+            reset : in std_logic;
+            stop_start : in std_logic;
+            dcache_address : in word;
+            dcache_out : out word
         ) ;
     end component ;
 
