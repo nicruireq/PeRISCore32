@@ -1,8 +1,26 @@
--------------------------------------------------------
---! @file
+---------------------------------------------------------------------------------------------
+--! @file   direct_mapped_DCache_behav.vhd
 --! @brief Direct mapped data cache L1 generic
--------------------------------------------------------
-
+--! @author Nicolas Ruiz Requejo
+--! @deprecated Experiment not working version of DCache
+--!             Instead of this use direct_mapped_DCache.vhd
+--! @warning    DO NOT USE
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 -- FAILED THIS DESIGN INFERS LATCHES
 library ieee;

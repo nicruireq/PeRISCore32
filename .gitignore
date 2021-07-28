@@ -8,3 +8,8 @@ workspace
 *.ods
 
 #rtl/images/*.asm
+
+# discard doc files because the huge amount of files
+# and all of them may be generated with doxygen Doxyfile
+# at anytime
+doc

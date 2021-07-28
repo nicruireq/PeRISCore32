@@ -1,8 +1,24 @@
--------------------------------------------------------
+---------------------------------------------------------------------------------------------
 --! @file   cpu_types.vhd
 --! @brief Type and constant definitions for
 --!        PeRISCore32
--------------------------------------------------------
+--! @author Nicolas Ruiz Requejo
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -41,8 +57,10 @@ package cpu_types is
     subtype halfword is std_logic_vector(half_width-1 downto 0);
     subtype control_signal is std_logic;
     subtype alu_control is std_logic_vector(3 downto 0) ;
+    --! type representing a number to index each register in register file
     subtype register_index is std_logic_vector(regfile_address_width-1 downto 0);
 
+    --! Amount of bytes needed to get next aligned word address
     constant next_address_bytes : word := x"00000004";
     --! constant for index of register zero
     constant zero : register_index := "00000";
@@ -249,13 +267,18 @@ end package ;
 
 package body cpu_types is
 
-    -- Procedures to clean pipeline registers
+    -- PROCEDURES TO CLEAN PIPELINE REGISTERS
+
+    --! @brief  Resets the IF/ID register
+    --! @param[out] if_id_reg   The IF/ID register
     procedure clean_if_id(signal if_id_reg : out IF_ID) is
     begin
         if_id_reg.pc <= (others => '0');
         if_id_reg.instruction <= (others => '0');
     end procedure;
 
+    --! @brief  Resets the ID/EX register
+    --! @param[out] id_ex_reg   The ID/EX register
     procedure clean_id_ex(signal id_ex_reg : out ID_EX) is
     begin
         id_ex_reg.instruction <= (others => '0');
@@ -273,6 +296,8 @@ package body cpu_types is
         id_ex_reg.dst_reg_rd_rt <= '0';
     end procedure;
 
+    --! @brief  Resets the EX/MEM register
+    --! @param[out] ex_mem_reg   The EX/MEM register
     procedure clean_ex_mem(signal ex_mem_reg : out EX_MEM) is
     begin
         ex_mem_reg.instruction <= (others => '0');
@@ -286,6 +311,8 @@ package body cpu_types is
         ex_mem_reg.dst_reg_rd_rt <= '0';
     end procedure;
 
+    --! @brief  Resets the MEM/WB register
+    --! @param[out] mem_wb_reg   The MEM/WB register
     procedure clean_mem_wb(signal mem_wb_reg : out MEM_WB) is
     begin
         mem_wb_reg.instruction <= (others => '0');

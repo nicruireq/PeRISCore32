@@ -1,9 +1,24 @@
--------------------------------------------------------
+---------------------------------------------------------------------------------------------
 --! @file   memory_utils.vhd
---! @brief procedures and functions utilities for
---!        PeRISCore32
+--! @brief types, procedures and functions utilities for
+--!        memory initialization in PeRISCore32
 --! @author Nicolas Ruiz Requejo
--------------------------------------------------------
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -38,12 +53,30 @@ package memory_utils is
     --      FUNCTION DECLARATIONS TO LOAD MEMORIES 
     -------------------------------------------------------
 
+    --! @brief  Given a file with lines of binary strings ,
+    --!         fill memory data blocks (a line per address)
+    --! @param[in] file_name relative or absolute path to the 
+    --!            data memory file plus its full name
+    --! @return Memory image with the microcode to be loaded 
+    --!         in main control unit
     impure function load_memory_from_file(file_name : in string)
         return control_unit_rom;
 
+    --! @brief  Given a file with lines of binary strings ,
+    --!         fill memory data blocks (a line per address)
+    --! @param[in] file_name relative or absolute path to the 
+    --!            data memory file plus its full name
+    --! @return Memory image with the microcode to be loaded 
+    --!         in alu not-class control unit
     impure function load_memory_from_file(file_name : in string)
         return alu_control_rom;
     
+    --! @brief  Given a file with lines of binary strings ,
+    --!         fill memory data blocks (a line per address)
+    --! @param[in] file_name relative or absolute path to the 
+    --!            data memory file plus its full name
+    --! @return Memory image with the microcode to be loaded 
+    --!         in alu SPECIAL class control unit
     impure function load_memory_from_file(file_name : in string)
         return special_control_rom;
 
@@ -51,8 +84,6 @@ end package;
 
 package body memory_utils is
     
-    --!
-    --!
     impure function load_memory_from_file(file_name : in string)
             return control_unit_rom is
 
@@ -73,8 +104,6 @@ package body memory_utils is
         return temp_mem;
     end function;
 
-    --!
-    --!
     impure function load_memory_from_file(file_name : in string)
             return alu_control_rom is
 
@@ -95,8 +124,6 @@ package body memory_utils is
         return temp_mem;
     end function;
 
-    --!
-    --!
     impure function load_memory_from_file(file_name : in string)
             return special_control_rom is
 

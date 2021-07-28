@@ -1,0 +1,5 @@
+Anyone modifying the design should provide brief information about the modifications,
+including the date they were made, information about the design must be added but 
+never removed from this file. For example:
+
+'28 July 2021: the change being made'

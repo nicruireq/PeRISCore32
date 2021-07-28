@@ -1,7 +1,40 @@
--------------------------------------------------------
+---------------------------------------------------------------------------------------------
 --! @file   id_hazard_detection_unit.vhd
 --! @brief ID hazard detection unit
--------------------------------------------------------
+--! @author Nicolas Ruiz Requejo
+--! @details    id_hazard_detection_unit is a block of 
+--!             combinational logic aimed to stall the 
+--!             pipeline operation when a hazard is impossible
+--!             to be resolved by forward mechanisms.
+--!             This hazards must be detected in ID stage,
+--!             where the nop pseudo instruction can be
+--!             inserted in the ID/EX register to allow
+--!             that the bubble can flow through the pipeline
+--!              - id_hazard_detection_unit is located in ID stage.
+--!              - Stall operation means: 
+--!                 + Insert a NOP in ID/EX
+--!                 + Inhibits PC writings
+--!                 + Inhibits IF/ID writings
+--!              - List of detected hazards:
+--!                 + load-use hazards (lw-x)
+--!                 + beq operands having a RAW with
+--!                   past instructions
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -22,9 +55,9 @@ entity id_hazard_detection_unit is
         if_id_rt : in register_index;
         id_mem_write : in control_signal; --! to detect a sw being decoded in ID stage
         id_branch : in control_signal;  --! to detect a beq being decoded in ID stage
-        stall : out control_signal;
-        pc_write : out control_signal;
-        if_id_write : out control_signal
+        stall : out control_signal; --! Inserts a "bubble" through the pipeline
+        pc_write : out control_signal;  --! Inhibits writing in PC register
+        if_id_write : out control_signal    --! Inhibits writing in IF/ID register
     );
 end entity id_hazard_detection_unit;
 

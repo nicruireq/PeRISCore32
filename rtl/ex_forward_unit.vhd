@@ -1,7 +1,54 @@
--------------------------------------------------------
+---------------------------------------------------------------------------------------------
 --! @file   ex_forward_unit.vhd
 --! @brief EX forwarding unit
--------------------------------------------------------
+--! @author Nicolas Ruiz Requejo
+--! @details    ex_forward_unit unit is a block of 
+--!             combinational logic aimed to forward
+--!             operands needed during EX stage when
+--!             any type of RAW hazard happens between
+--!             instruction currently runinng in EX stage
+--!             and past instruction in MEM and WB stages.
+--!              - ex_forward_unit is located in EX stage.
+--!              - List of hazards managed:
+--!                 + Combinations of R or I type instructions
+--!                   between EX and MEM or EX and WB stages
+--!                   that lead to RAW hazards
+--!                 + RAW hazard between lw/sw address calculation
+--!                   in EX stage and  R/I type instructions in
+--!                   MEM or WB stages
+--!                 + Allows forwarding of destination operand
+--!                   of lw instruction in a load-use hazard after
+--!                   the stall cycles
+--!              - Table of forwardings:
+--!                 *forward_A* value  |   operand being forwarded
+--!                 -------------------|--------------------------
+--!                         00         |    none
+--!                         01         |    Alu result from EX/MEM
+--!                         10         |    Alu result from MEM/WB
+--!                         11         |    data cache from MEM/WB
+--!
+--!                 *forward_B* value  |   operand being forwarded
+--!                 -------------------|--------------------------
+--!                         00         |    none
+--!                         01         |    Alu result from EX/MEM
+--!                         10         |    Alu result from MEM/WB
+--!                         11         |    data cache from MEM/WB
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -19,8 +66,8 @@ entity ex_forward_unit is
         mem_wb_rt : in register_index;
         id_ex_rs : in register_index;
         id_ex_rt : in register_index;
-        forward_A : out ex_forward;
-        forward_B : out ex_forward
+        forward_A : out ex_forward; --! control signal to command the forwarding action for operand_A
+        forward_B : out ex_forward  --! control signal to command the forwarding action for operand_B
     );
 end entity ex_forward_unit;
 

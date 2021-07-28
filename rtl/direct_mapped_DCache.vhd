@@ -1,7 +1,36 @@
--------------------------------------------------------
---! @file
+---------------------------------------------------------------------------------------------
+--! @file   direct_mapped_DCache.vhd
 --! @brief Direct mapped data cache L1 generic
--------------------------------------------------------
+--! @author Nicolas Ruiz Requejo
+--! @details    By default provide 256 cache lines.
+--!             Structure of cache lines:
+--!             (valid bit, tag slice of address 22 bits, data block 32 bits).
+--!             Due to the logic needed this cache is only synthetizable as 
+--!             distributed ram.
+--!             + This implementation is ready to accept writings of:
+--!                 - Bytes: in addresses multiple of 1
+--!                 - Halfwords: in addresses multiple of 2
+--!                 - words: in addresses multiple of 4
+--!             + This implementation is ready to make readings of:
+--!                 - Bytes: signed/unsigned
+--!                 - Halfwords: signed/unsigned
+--!                 - Words
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

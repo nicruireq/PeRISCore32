@@ -1,3 +1,36 @@
+---------------------------------------------------------------------------------------------
+--! @file   alu.vhd
+--! @brief  32 bit ALU by default
+--! @author Nicolas Ruiz Requejo
+--! @details    Performs the operations:
+--!             + Signed/unsigned add
+--!             + Signed/unsigned sub
+--!             + Signed/unsigned set on less than
+--!             + and, nor, or, xor
+--!             + Load upper inmediate slice of an operand
+--!             + Shift left logical
+--!             + Shift right logical
+--!             + Shift right arithmetic
+--!             + sign extend byte
+--!             + Sign extend halfword
+--!             + Overflow detection
+--!
+--! @Copyright  SPDX-FileCopyrightText: 2020 Nicolas Ruiz Requejo nicolas.r.requejo@gmail.com
+--!             SPDX-License-Identifier: CERN-OHL-S-2.0+
+--!
+--!             This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+--!             INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A
+--!             PARTICULAR PURPOSE. Please see the CERN-OHL-S v2 for applicable conditions.
+--!
+--!             Source location: https://github.com/nicruireq/PeRISCore32
+--!
+--!             As per CERN-OHL-S v2 section 4, should You produce hardware based on this
+--!             source, You must where practicable maintain the Source Location visible
+--!             on the external case and documentation of the PeRISCore32 or other products 
+--!             you make using this source.
+--!
+---------------------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -13,7 +46,7 @@ entity alu is
     port (
         operand_A : in std_logic_vector(data_width-1 downto 0);
         operand_B : in std_logic_vector(data_width-1 downto 0);
-        control : in std_logic_vector(alu_control_width-1 downto 0);
+        control : in std_logic_vector(alu_control_width-1 downto 0);    --! Selects ALU's operation
         computation_out : out std_logic_vector(data_width-1 downto 0);
         overflow_flag : out std_logic
     ) ;

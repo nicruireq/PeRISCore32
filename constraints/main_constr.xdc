@@ -23,6 +23,7 @@ set_property -dict { PACKAGE_PIN C12   IOSTANDARD LVCMOS33 } [get_ports { reset 
 #set_input_delay -clock [get_clocks sys_clk_pin] -min -add_delay 0.130 [get_ports {select_type[*]}]
 #set_input_delay -clock [get_clocks sys_clk_pin] -max -add_delay 0.140 [get_ports {select_type[*]}]
 
+# dummy outputs
 set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { dcache_out[0] }]; #IO_L18P_T2_A24_15 Sch=dcache_out[]
 set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { dcache_out[1] }]; #IO_L24P_T3_RS1_15 Sch=dcache_out[]
 set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS33 } [get_ports { dcache_out[2] }]; #IO_L17N_T2_A25_15 Sch=dcache_out[]
