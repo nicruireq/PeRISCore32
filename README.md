@@ -39,4 +39,18 @@
                          como "golden data".
 * workspace: directorio donde se encuentra el proyecto de vivado
 
+## Acceder a la documentación de los ficheros fuente en html
+Si el directorio *doc* se encuentra vacío, se puede generar la documentación
+situandose con una terminal en el directorio raíz del proyecto yejecutando 
+el comando:
+
+doxygen Doxyfile
+
+Entonces encontrará la documentación abriendo con un navegador el fichero:
+
+[](doc/html/index.html)
+
+Necesitará tener doxygen instalado en su sistema.
+
+## Simulador de ensamblador
 El simulador MARS se puede obtener de: [MARS](http://courses.missouristate.edu/kenvollmar/mars/download.htm)
