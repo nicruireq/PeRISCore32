@@ -3,3 +3,9 @@ including the date they were made, information about the design must be added bu
 never removed from this file. For example:
 
 '28 July 2021: the change being made'
+
+6 March 2023: deleted constraints directory
+6 March 2023: added new folder 'boards' with constraints and top files
+              sort by specific board subfolder
+6 March 2023: add project example for basys3 board
+6 March 2023: move workspace directory for nexys4drr to boards folder
